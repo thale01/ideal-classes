@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Search Results for "{{ query }}" - Ideal Class{% endblock %}
+
+{% block content %}
+<div class="row pt-5 mb-5 text-center animate__animated animate__fadeIn">
+    <div class="col-12">
+        <h1 class="display-3 fw-bold">Search <span class="text-secondary-branded">Findings</span></h1>
+        <p class="lead fs-4">Displaying results for <span class="text-main fw-bold">"{{ query }}"</span></p>
+    </div>
+</div>
+
+
+<div class="row">
+    <!-- Subjects Section -->
+    <div class="col-12 mb-5">
+        <div class="d-flex align-items-center mb-4">
+            <h2 class="fw-bold mb-0">Relevant Subjects</h2>
+            <div class="ms-3 flex-grow-1" style="height: 1px; background-color: var(--border-color);"></div>
+        </div>
+
+        <div class="row g-4">
+            {% for subject in subjects %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card card-branded p-4 border-0 h-100 animate__animated animate__fadeInUp">
+                    <div class="mb-3">
+                         <span class="badge bg-light rounded-pill px-3 py-2">Subject Match</span>
+                    </div>
+                    <h4 class="fw-bold mb-3 h3">{{ subject.name }}</h4>
+                    <p class="small mb-4">Located in: <span class="text-secondary-branded fw-bold">{{ subject.branch.name }}</span> ({{ subject.category.name }})</p>
+                    <a href="{% url 'subject_detail' subject.pk %}" class="btn btn-primary-branded w-100 py-3 mt-auto">Go to Course</a>
+                </div>
+            </div>
+
+            {% empty %}
+            <div class="col-12">
+                <div class="card card-glass p-5 text-center border-0 opacity-75">
+                    <p class="fs-5 text-glass-muted mb-0">No subjects matched your query.</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Content Section -->
+    <div class="col-12 mb-5">
+        <div class="d-flex align-items-center mb-4">
+            <h2 class="fw-bold mb-0">Direct Resources</h2>
+            <div class="ms-3 flex-grow-1" style="height: 1px; background-color: var(--border-color);"></div>
+        </div>
+
+        <div class="row g-4">
+            {% for content in contents %}
+            <div class="col-md-6">
+                <div class="card card-branded p-4 border-0 h-100 animate__animated animate__fadeInUp">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h4 class="fw-bold mb-0 h3">{{ content.title }}</h4>
+                        <span class="badge bg-light rounded-pill px-3 py-2">{{ content.content_type }}</span>
+                    </div>
+                    <p class="mb-4">Core material for <span class="text-secondary-branded fw-bold">{{ content.subject.name }}</span></p>
+                    <a href="{% url 'subject_detail' content.subject.pk %}" class="btn btn-secondary-branded w-100 py-3 mt-auto">Access Study Material</a>
+                </div>
+            </div>
+
+            {% empty %}
+            <div class="col-12">
+                <div class="card card-branded p-5 text-center border-0 opacity-75">
+                    <p class="fs-5 mb-0">No specific notes or videos matched your search.</p>
+                </div>
+            </div>
+
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% if not user.is_authenticated %}
+<!-- Hero Section for Guest -->
+<div class="row align-items-center mb-5 py-5 text-center text-lg-start animate__animated animate__fadeIn">
+    <div class="col-lg-7">
+        <h1 class="display-2 fw-bold mb-4 lh-sm animate__animated animate__fadeInDown">Learn Smarter,<br><span
+                style="background: linear-gradient(to right, #fff, rgba(255,255,255,0.6)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Faster.</span>
+        </h1>
+        <p class="lead fs-4 text-white opacity-75 mb-5 pe-lg-5">Unlock your true potential with premium study materials.
+            Join thousands of students achieving excellence today.</p>
+        <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+            <a href="{% url 'signup' %}" class="btn btn-modern px-5 py-3 fs-5 bg-white text-primary">Get Started Now</a>
+            <a href="#browse" class="btn btn-modern px-5 py-3 fs-5">Explore Courses</a>
+        </div>
+    </div>
+    <div class="col-lg-5 d-none d-lg-block animate__animated animate__zoomIn">
+        <div class="card card-glass p-1 border-0 overflow-hidden shadow-lg" style="transform: rotate(2deg);">
+            <div class="p-5 bg-white bg-opacity-10 text-center">
+                <i class="bi bi-rocket-takeoff display-1 text-white"></i>
+                <div class="mt-4">
+                    <div class="badge bg-white text-primary px-3 py-2 rounded-pill mb-2">New Platform</div>
+                    <h3 class="fw-bold">Ideal Class</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<!-- Dashboard for Logged In User -->
+<div class="mb-5 animate__animated animate__fadeIn">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="display-5 fw-bold mb-1">Welcome back, {{ user.first_name|default:user.username }}!</h1>
+            <p class="opacity-75 fs-5">Pick up where you left off or start something new.</p>
+        </div>
+    </div>
+
+    <!-- Recently Viewed (Mock) -->
+    <div class="mb-5">
+        <h4 class="fw-bold mb-4 d-flex align-items-center">
+            <i class="bi bi-clock-history me-3 text-white"></i> Recently Viewed
+        </h4>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card card-glass p-4 border-0 h-100 bg-white bg-opacity-10">
+                    <p class="small opacity-50 mb-1">Subject</p>
+                    <h5 class="fw-bold mb-3">Mathematics</h5>
+                    <div class="progress mb-3" style="height: 6px; background: rgba(255,255,255,0.1);">
+                        <div class="progress-bar bg-white" style="width: 65%;"></div>
+                    </div>
+                    <a href="#" class="btn btn-modern py-2 w-100">Continue Learning</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-glass p-4 border-0 h-100 bg-white bg-opacity-10 opacity-75">
+                    <p class="small opacity-50 mb-1">Chapter</p>
+                    <h5 class="fw-bold mb-3">Advanced Physics</h5>
+                    <div class="progress mb-3" style="height: 6px; background: rgba(255,255,255,0.1);">
+                        <div class="progress-bar bg-white" style="width: 30%;"></div>
+                    </div>
+                    <a href="#" class="btn btn-modern py-2 w-100">Resume</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Categories Section -->
+<section id="browse" class="mt-5">
+    <div class="d-flex align-items-center mb-5 animate__animated animate__fadeIn">
+        <h2 class="display-6 fw-bold mb-0">{% if user.is_authenticated %}Explore Categories{% else %}Our Curricular
+            Categories{% endif %}</h2>
+        <div class="ms-auto h-25 bg-white opacity-25" style="width: 100px; height: 3px !important; border-radius: 5px;">
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for category in categories %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card card-glass h-100 p-2 border-0 animate__animated animate__fadeInUp">
+                <div class="card-body p-4">
+                    <div class="p-3 bg-white bg-opacity-10 d-inline-block rounded-4 mb-4">
+                        <i class="bi bi-mortarboard fs-3"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3">{{ category.name }}</h3>
+                    <p class="text-white opacity-75 mb-4 mb-0">Full access to subjects and materials curated for {{
+                        category.name }} students.</p>
+                    <a href="{% url 'category_branches' category.pk %}"
+                        class="btn btn-modern w-100 py-3 shadow-lg">Explore Curriculum</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+{% endblock %}

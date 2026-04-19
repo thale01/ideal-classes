@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center animate__animated animate__zoomIn">
+    <div class="col-md-6 col-lg-4">
+        <div class="card card-branded border-0 p-4 p-md-5">
+            <div class="text-center mb-5">
+                <i class="bi bi-shield-lock-fill display-3 text-secondary-branded"></i>
+                <h2 class="fw-bold mt-3">Admin Portal</h2>
+                <p class="opacity-50">Authorized access for faculty and staff</p>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0" style="background-color: var(--border-color); color: var(--text-main);"><i class="bi bi-person"></i></span>
+                        <input type="text" name="username" class="form-control" placeholder="Enter username" required>
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <label class="form-label fw-bold">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0" style="background-color: var(--border-color); color: var(--text-main);"><i class="bi bi-lock"></i></span>
+                        <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary-branded w-100 py-3 fs-5 shadow-sm">Enter Dashboard</button>
+            </form>
+            
+            <div class="mt-5 pt-3 border-top text-center opacity-75">
+                <p class="small mb-2">Back to <a href="{% url 'login_selection' %}" class="text-secondary-branded fw-bold text-decoration-none">Role Selection</a></p>
+                <div class="alert alert-info py-2 small border-0 mt-3" style="background-color: rgba(162, 195, 57, 0.1); color: var(--primary-color);">
+                    <i class="bi bi-info-circle me-2"></i> Use your system credentials to access the admin dashboard.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="display-5 fw-bold mb-1">Manage Course Content</h1>
+            <p class="opacity-75">Upload notes and video lectures organized by Subject & Chapter.</p>
+        </div>
+        <a href="{% url 'home' %}" class="btn btn-outline-primary-branded px-4 shadow-sm">
+            <i class="bi bi-arrow-left me-2"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <div class="row g-5">
+        <!-- Upload Form -->
+        <div class="col-lg-4">
+            <div class="card card-branded border-0 p-4 sticky-top" style="top: 100px;">
+                <h4 class="fw-bold mb-4">Add Hierarchical Content</h4>
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <button type="submit" class="btn btn-primary-branded w-100 py-3 mt-3 shadow-sm">
+                        <i class="bi bi-cloud-upload me-2"></i> Upload to Chapter
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Content List -->
+        <div class="col-lg-8">
+            <div class="card card-branded border-0 p-4 shadow-sm h-100">
+                <h4 class="fw-bold mb-4">Existing Chapter Materials</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="bg-light bg-opacity-10">
+                            <tr>
+                                <th class="py-3 px-4 border-0">Resource Title</th>
+                                <th class="py-3 border-0">Subject & Chapter</th>
+                                <th class="py-3 border-0">Type</th>
+                                <th class="py-3 border-0">Status</th>
+                                <th class="py-3 px-4 border-0 text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for content in contents %}
+                            <tr>
+                                <td class="py-3 px-4 border-0 fw-bold">{{ content.title }}</td>
+                                <td class="py-3 border-0">
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-bold small">{{ content.chapter.subject.name }}</span>
+                                        <small class="text-muted">{{ content.chapter.name }}</small>
+                                    </div>
+                                </td>
+                                <td class="py-3 border-0">
+                                    {% if content.content_type == 'Notes' %}
+                                        <span class="badge bg-light rounded-pill px-3 py-2"><i class="bi bi-file-pdf me-1"></i> PDF Note</span>
+                                    {% else %}
+                                        <span class="badge bg-light rounded-pill px-3 py-2"><i class="bi bi-play-circle me-1"></i> Lecture</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 border-0 small opacity-50">Active Library</td>
+                                <td class="py-3 px-4 border-0 text-end">
+                                    <a href="{% url 'delete_content' content.pk %}" class="btn btn-sm btn-outline-danger border-0 p-2" onclick="return confirm('Delete this content?')">
+                                        <i class="bi bi-trash fs-5"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 opacity-25">
+                                    <i class="bi bi-inbox display-4 mb-3 d-block"></i>
+                                    No content uploaded yet. Use the form to start building your curriculum.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

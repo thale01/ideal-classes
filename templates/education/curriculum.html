@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn">
+    <!-- Header Section -->
+    <div class="row align-items-center mb-5">
+        <div class="col-lg-8">
+            <h1 class="display-3 fw-bold mb-4">Our <span class="text-secondary-branded">Curriculum</span></h1>
+            <p class="lead fs-4 opacity-75 pe-lg-5">Explore our comprehensive educational paths designed for 12th, Diploma, and Degree excellence.</p>
+        </div>
+    </div>
+
+    <!-- Curriculum Grid -->
+    <div class="row g-4">
+        {% for category in categories %}
+        <div class="col-lg-6">
+            <div class="card card-branded border-0 p-4 h-100 shadow-sm transition-hover">
+                <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+                    <div class="p-3 bg-primary bg-opacity-10 rounded-pill me-3" style="color: var(--primary-color);">
+                        <i class="bi bi-mortarboard fs-2"></i>
+                    </div>
+                    <div>
+                        <h2 class="fw-bold mb-0">{{ category.name }}</h2>
+                        <p class="small text-muted mb-0">Academic Stream</p>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    {% for year in category.years.all %}
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light bg-opacity-10 rounded-4 border border-light border-opacity-10 h-100">
+                            <h6 class="fw-bold mb-3 d-flex align-items-center">
+                                <i class="bi bi-calendar-event me-2 text-secondary-branded"></i> {{ year.name }}
+                            </h6>
+                            <a href="{% url 'year_subjects' category.pk year.pk %}" class="btn btn-sm btn-outline-primary-branded w-100 rounded-pill">
+                                View Subjects <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12">
+                        <p class="text-muted opacity-50 small">Curriculum structure being updated...</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Support Section -->
+    <div class="mt-5 p-5 card-branded border-0 shadow-sm rounded-4 text-center">
+        <h3 class="fw-bold mb-3">Can't find what you're looking for?</h3>
+        <p class="opacity-75 mb-4">Our curriculum is constantly expanding. Contact our counseling team for personalized guidance.</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{% url 'contact_us' %}" class="btn btn-primary-branded px-5 py-3 shadow-sm rounded-pill">Contact Admin</a>
+            <a href="{% url 'admission_apply' %}" class="btn btn-secondary-branded px-5 py-3 shadow-sm rounded-pill">Apply Now</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

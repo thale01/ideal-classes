@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Sign Up - Ideal Class{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="col-md-6">
+        <div class="card card-glass p-5 border-0">
+            <h2 class="text-center fw-bold mb-4 display-5">Get Started</h2>
+            <p class="text-center text-glass-muted mb-5 fs-5">Create your student account to access all content.</p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-12">
+                        {{ form|crispy }}
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-glass w-100 py-3 mt-4 fw-bold fs-5 shadow">Create Account</button>
+            </form>
+            <p class="text-center mt-4 mb-0 text-glass-muted">Already have an account? <a href="{% url 'login' %}" class="text-white fw-bold">Login</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

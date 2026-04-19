@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn">
+    <div class="row mb-5">
+        <div class="col-md-12 text-center">
+            <h1 class="display-3 fw-bold mb-3">Showing content for: <span class="text-secondary-branded">{{ class_name }}</span></h1>
+            <p class="lead opacity-75">Access the best learning resources curated for your excellence.</p>
+            <div class="d-flex justify-content-center mt-4">
+                <a href="{% url 'home' %}" class="btn btn-outline-primary px-4 py-2 rounded-pill">
+                    <i class="bi bi-arrow-left me-2"></i> Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Placeholder for actual content -->
+    <div class="row g-4 mt-5">
+        <div class="col-md-6 col-lg-4">
+            <div class="card card-branded p-4 h-100 border-0 text-center">
+                <div class="p-3 bg-light d-inline-block rounded-circle mb-3 mx-auto" style="color: var(--primary-color);">
+                    <i class="bi bi-journal-text fs-2"></i>
+                </div>
+                <h5 class="fw-bold">Study Guides</h5>
+                <p class="small opacity-75">Comprehensive guides for {{ class_name }} subjects.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card card-branded p-4 h-100 border-0 text-center">
+                <div class="p-3 bg-light d-inline-block rounded-circle mb-3 mx-auto" style="color: var(--primary-color);">
+                    <i class="bi bi-question-circle fs-2"></i>
+                </div>
+                <h5 class="fw-bold">Practice Papers</h5>
+                <p class="small opacity-75">Test your knowledge with latest pattern papers.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card card-branded p-4 h-100 border-0 text-center">
+                <div class="p-3 bg-light d-inline-block rounded-circle mb-3 mx-auto" style="color: var(--primary-color);">
+                    <i class="bi bi-play-btn fs-2"></i>
+                </div>
+                <h5 class="fw-bold">Live Sessions</h5>
+                <p class="small opacity-75">Join interactive sessions for {{ class_name }} topics.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn">
+    <div class="row align-items-center mb-5">
+        <div class="col-lg-7">
+            <h1 class="display-3 fw-bold mb-4">Get in <span class="text-secondary-branded">Touch</span></h1>
+            <p class="lead fs-4 opacity-75 pe-lg-5">Have questions about our curriculum or admissions? Our team is here to help you guide your educational journey.</p>
+        </div>
+    </div>
+
+    <div class="row g-5">
+        <!-- Contact Form -->
+        <div class="col-lg-7">
+            <div class="card card-branded border-0 p-4 p-md-5 shadow-sm">
+                <h3 class="fw-bold mb-4">Send us a Message</h3>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.name|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.email|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        {{ form.subject|as_crispy_field }}
+                    </div>
+                    <div class="mb-4">
+                        {{ form.message|as_crispy_field }}
+                    </div>
+                    <button type="submit" class="btn btn-primary-branded px-5 py-3 fs-5 shadow-sm">
+                        <i class="bi bi-send me-2"></i> Send Message
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Contact details -->
+        <div class="col-lg-5">
+            <div class="d-flex flex-column gap-4">
+                
+                <!-- Director Card -->
+                <div class="card card-branded border-0 p-4 shadow-sm border-start border-primary border-5">
+                    <div class="d-flex align-items-center">
+                        <div class="p-3 bg-primary bg-opacity-10 rounded-pill me-3">
+                            <i class="bi bi-person-badge fs-2 text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted small fw-bold mb-1">Director</h6>
+                            <h4 class="fw-bold mb-0">Kalpesh Patil</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Call Us Card -->
+                <div class="card card-branded border-0 p-4 shadow-sm border-start border-secondary border-5">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="p-3 bg-secondary bg-opacity-10 rounded-pill me-3">
+                            <i class="bi bi-telephone-outbound fs-2 text-secondary-branded"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted small fw-bold mb-1">Call Us</h6>
+                            <h5 class="fw-bold mb-0">Direct Support</h5>
+                        </div>
+                    </div>
+                    <div class="ps-5 ms-3">
+                        <h3 class="fw-bold mb-1"><a href="tel:8793309230" class="text-decoration-none text-main">8793309230</a></h3>
+                        <h3 class="fw-bold mb-0"><a href="tel:9028289230" class="text-decoration-none text-main">9028289230</a></h3>
+                    </div>
+                </div>
+
+                <!-- Branches Card -->
+                <div class="card card-branded border-0 p-4 shadow-sm">
+                    <h5 class="fw-bold mb-4 d-flex align-items-center">
+                        <i class="bi bi-geo-alt-fill text-secondary-branded me-2"></i> Our Departments
+                    </h5>
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-primary mb-1">Ramwadi Department:</h6>
+                        <p class="mb-0 opacity-75">near Mumbai- Goa Highway, Diploma College Rd</p>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold text-primary mb-1">Pen Department:</h6>
+                        <p class="mb-0 opacity-75">Prathmesh Vishnu Appt, Chavadi Naka, Pen</p>
+                    </div>
+                </div>
+
+                <!-- WhatsApp Button -->
+                <a href="https://wa.me/918793309230" target="_blank" class="btn btn-success py-3 rounded-4 shadow-sm fs-5 fw-bold">
+                    <i class="bi bi-whatsapp me-2"></i> Chat on WhatsApp
+                </a>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

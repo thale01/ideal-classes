@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center animate__animated animate__fadeIn">
+    <div class="col-md-6 col-lg-4">
+        <div class="card card-branded border-0 p-4 p-md-5">
+            <div class="text-center mb-5">
+                <i class="bi bi-person-badge-fill display-3 text-secondary-branded"></i>
+                <h2 class="fw-bold mt-3">Student Login</h2>
+                <p class="opacity-50">Authorized access for approved students</p>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Email Address</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0" style="background-color: var(--border-color); color: var(--text-main);"><i class="bi bi-envelope"></i></span>
+                        <input type="email" name="email" class="form-control" placeholder="example@email.com" required>
+                    </div>
+
+                </div>
+
+                <div class="mb-5">
+                    <label class="form-label fw-bold">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0" style="background-color: var(--border-color); color: var(--text-main);"><i class="bi bi-lock"></i></span>
+                        <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+                    </div>
+
+                </div>
+
+                <button type="submit" class="btn btn-primary-branded w-100 py-3 fs-5 shadow-sm">Secure Login</button>
+            </form>
+            
+            <div class="mt-5 pt-3 border-top text-center opacity-75">
+                <p class="small mb-2">Back to <a href="{% url 'login_selection' %}" class="text-secondary-branded fw-bold text-decoration-none">Role Selection</a></p>
+                <p class="small mb-0">Don't have an account? <a href="{% url 'admission_apply' %}" class="text-secondary-branded fw-bold text-decoration-none">Apply Now</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

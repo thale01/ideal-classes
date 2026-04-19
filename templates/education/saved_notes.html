@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn">
+    <div class="row mb-5 align-items-center">
+        <div class="col-md-8">
+            <h6 class="text-secondary-branded fw-bold text-uppercase small mb-2">Hello, {{ student.full_name }}</h6>
+            <h1 class="display-5 fw-bold mb-1">Saved Learning <span class="text-secondary-branded">Notes</span></h1>
+            <p class="opacity-75 fs-5">Access all your bookmarked lectures and study materials in one place.</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <div class="p-3 card-branded d-inline-block border-0 shadow-sm">
+                <span class="fs-4 fw-bold text-primary">{{ saved_items.count }}</span>
+                <span class="text-muted ms-2 small fw-bold">Items Saved</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for item in saved_items %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card card-branded border-0 h-100 shadow-sm overflow-hidden">
+                <div class="p-4 border-bottom bg-light bg-opacity-10 d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="badge bg-secondary-branded text-primary rounded-pill mb-2 px-3 py-2 small fw-bold">{{ item.content.content_type }}</span>
+                        <h6 class="text-muted small mb-0">{{ item.content.chapter.subject.name }}</h6>
+                    </div>
+                    <a href="{% url 'toggle_save_content' item.content.pk %}" class="text-danger" title="Remove from saved">
+                        <i class="bi bi-trash fs-5"></i>
+                    </a>
+                </div>
+                <div class="card-body p-4 d-flex flex-column">
+                    <h5 class="fw-bold mb-3">{{ item.content.title }}</h5>
+                    <p class="small text-muted flex-grow-1">{{ item.content.description|default:"No description available."|truncatechars:120 }}</p>
+                    
+                    <div class="mt-4 pt-3 border-top d-flex gap-2">
+                        <a href="{% url 'subject_detail' item.content.chapter.subject.pk %}" class="btn btn-outline-primary btn-sm flex-grow-1 rounded-pill d-flex align-items-center justify-content-center">View Subject</a>
+                        {% if item.content.content_type == 'Notes' and item.content.file %}
+                            <a href="{{ item.content.file.url }}" target="_blank" class="btn btn-primary-branded btn-sm px-4 rounded-pill d-flex align-items-center justify-content-center">Open File</a>
+                        {% elif item.content.content_type == 'Video' %}
+                            <a href="{% url 'subject_detail' item.content.chapter.subject.pk %}" class="btn btn-secondary-branded btn-sm px-4 rounded-pill d-flex align-items-center justify-content-center">Watch Video</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5 mt-5">
+            <div class="opacity-25 mb-4">
+                <i class="bi bi-bookmark-x display-1"></i>
+            </div>
+            <h3 class="fw-bold">No saved notes yet</h3>
+            <p class="text-muted mb-5">Start browsing your curriculum and save materials you want to review later.</p>
+            <a href="{% url 'student_dashboard' %}" class="btn btn-primary-branded px-5 py-3">Explore My Subjects</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

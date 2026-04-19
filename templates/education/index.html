@@ -1,0 +1,282 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% if not user.is_authenticated and not request.session.is_student %}
+<!-- Landing Page for Guest -->
+<div class="animate__animated animate__fadeIn">
+
+    <!-- Branded Hero Section -->
+    <div class="row align-items-center mb-5 py-5 text-lg-start">
+        <div class="col-lg-7">
+            <h1 class="display-1 fw-bold mb-4 animate__animated animate__fadeInDown lh-sm">
+                Learn <span class="text-secondary-branded">Smarter,</span><br>Faster.
+            </h1>
+            <p class="lead fs-4 opacity-75 mb-5 pe-lg-5">
+                Master your curriculum with our branded learning resources. Expertly curated for 12th, Diploma, and
+                Degree excellence.
+            </p>
+            <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+                <a href="{% url 'admission_apply' %}" class="btn btn-primary-branded px-5 py-3 fs-5">Apply for Admission</a>
+                <a href="#browse" class="btn btn-secondary-branded px-5 py-3 fs-5">Explore Courses</a>
+            </div>
+        </div>
+        <div class="col-lg-5 d-none d-lg-block animate__animated animate__zoomIn">
+            <div class="card card-branded p-0 border-0 shadow-lg" style="background: var(--primary-color);">
+                <div class="p-5 text-center text-white">
+                    <i class="bi bi-rocket-takeoff display-1 text-secondary-branded"></i>
+                    <div class="mt-4">
+                        <div class="badge bg-secondary-branded text-primary px-3 py-2 rounded-pill mb-2">Ideal Class
+                        </div>
+                        <h4 class="fw-bold">Branded Excellence</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row g-4 mb-5 pt-5">
+        <div class="col-md-4">
+            <div class="card card-branded p-4 h-100 text-center border-0 animate__animated animate__fadeInUp">
+                <div class="p-4 bg-opacity-10 d-inline-block rounded-circle mb-4 mx-auto"
+                    style="background-color: var(--secondary-color); color: var(--secondary-color);">
+                    <i class="bi bi-file-earmark-pdf fs-1"></i>
+                </div>
+                <h4 class="fw-bold mb-3">Premium Notes</h4>
+                <p>Expertly summarized PDF notes for quick revision and deep understanding of core
+                    concepts.</p>
+            </div>
+
+        </div>
+        <div class="col-md-4">
+            <div class="card card-branded p-4 h-100 text-center border-0 animate__animated animate__fadeInUp"
+                style="animation-delay: 0.1s;">
+                <div class="p-4 bg-opacity-10 d-inline-block rounded-circle mb-4 mx-auto"
+                    style="background-color: var(--secondary-color); color: var(--secondary-color);">
+                    <i class="bi bi-play-btn fs-1"></i>
+                </div>
+                <h4 class="fw-bold mb-3">Video Lectures</h4>
+                <p>Interactive video content hosted by top educators. Learn complex topics with ease.
+                </p>
+            </div>
+
+        </div>
+        <div class="col-md-4">
+            <div class="card card-branded p-4 h-100 text-center border-0 animate__animated animate__fadeInUp"
+                style="animation-delay: 0.2s;">
+                <div class="p-4 bg-opacity-10 d-inline-block rounded-circle mb-4 mx-auto"
+                    style="background-color: var(--secondary-color); color: var(--secondary-color);">
+                    <i class="bi bi-diagram-3 fs-1"></i>
+                </div>
+                <h4 class="fw-bold mb-3">Structured Learning</h4>
+                <p>Well-organized curriculum from 12th to Degree, maintaining quality and
+                    consistency.</p>
+            </div>
+
+        </div>
+</div>
+{% elif user.is_staff %}
+    <!-- Minimal Admin Dashboard Overview -->
+    <div class="animate__animated animate__fadeIn">
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="card card-branded border-0 p-4 h-100 shadow-sm">
+                    <div class="d-flex align-items-center">
+                        <div class="p-3 bg-opacity-10 rounded-pill me-3" style="background-color: var(--secondary-color); color: var(--secondary-color);">
+                            <i class="bi bi-people fs-2"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted small fw-bold mb-1">Total Active Students</h6>
+                            <h2 class="fw-bold mb-0">{{ total_students }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-branded border-0 p-4 h-100 shadow-sm">
+                    <div class="d-flex align-items-center">
+                        <div class="p-3 bg-opacity-10 rounded-pill me-3" style="background-color: #ffc107; color: #ffc107;">
+                            <i class="bi bi-person-plus fs-2"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted small fw-bold mb-1">Pending Admissions</h6>
+                            <h2 class="fw-bold mb-0">{{ pending_admissions }}</h2>
+                        </div>
+                    </div>
+                    <a href="{% url 'admin_admissions' %}" class="stretched-link"></a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-branded border-0 p-4 h-100 shadow-sm">
+                    <div class="d-flex align-items-center">
+                        <div class="p-3 bg-opacity-10 rounded-pill me-3" style="background-color: var(--secondary-color); color: var(--secondary-color);">
+                            <i class="bi bi-grid-3x3-gap fs-2"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted small fw-bold mb-1">Curriculum Subjects</h6>
+                            <h2 class="fw-bold mb-0">{{ total_subjects }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-5">
+            <div class="col-lg-8">
+                <div class="card card-branded border-0 p-5 text-center bg-opacity-10" style="background-color: var(--primary-color);">
+                    <i class="bi bi-shield-check display-1 text-secondary-branded mb-4"></i>
+                    <h3 class="fw-bold">Administrative Access</h3>
+                    <p class="text-muted mx-auto" style="max-width: 500px;">Use the sidebar navigation to manage students, curriculum subjects, and learning materials. Your dashboard is now minimal for professional operation.</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card card-branded border-0 p-4 h-100 shadow-sm">
+                    <h5 class="fw-bold mb-4">Quick Shortcuts</h5>
+                    <div class="list-group list-group-flush border-0">
+                        <a href="{% url 'manage_content' %}" class="list-group-item list-group-item-action border-0 px-0 d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-file-earmark-plus me-2 text-secondary-branded"></i> Upload New Content</span>
+                            <i class="bi bi-chevron-right small opacity-50"></i>
+                        </a>
+                        <a href="{% url 'admin_admissions' %}" class="list-group-item list-group-item-action border-0 px-0 d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-person-check me-2 text-secondary-branded"></i> Review Admissions</span>
+                            <i class="bi bi-chevron-right small opacity-50"></i>
+                        </a>
+                        <a href="/admin/" target="_blank" class="list-group-item list-group-item-action border-0 px-0 d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-gear me-2 text-secondary-branded"></i> Advanced Settings</span>
+                            <i class="bi bi-chevron-right small opacity-50"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% elif request.session.is_student %}
+    <!-- Dashboard for Student -->
+    <div class="animate__animated animate__fadeIn">
+        <div class="row mb-5 align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-5 fw-bold mb-1">
+                    Welcome, 
+                    <span class="text-secondary-branded">Student!</span>
+                </h1>
+                <p class="opacity-75 fs-5">Resume your educational journey with Ideal Classes.</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <div class="d-inline-flex align-items-center p-3 card-branded border-0 shadow-sm">
+                    <i class="bi bi-calendar-check fs-4 me-3 text-secondary-branded"></i>
+                    <div class="text-start">
+                        <p class="small mb-0 opacity-50">Today is</p>
+                        <h6 class="mb-0 fw-bold">{% now "l, d M" %}</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recently Viewed Mock (Optional for Student) -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-12">
+                <h4 class="fw-bold mb-4 d-flex align-items-center">
+                    <i class="bi bi-activity me-3 text-secondary-branded"></i> Recently Accessed
+                </h4>
+                <div class="row g-4">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card card-branded p-4 h-100 border-0">
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="badge bg-light px-3 py-2 rounded-pill">Subject</span>
+                                <i class="bi bi-three-dots-vertical opacity-50"></i>
+                            </div>
+                            <h5 class="fw-bold mb-2">Physics Part II</h5>
+                            <div class="progress mb-3" style="height: 8px;">
+                                <div class="progress-bar" style="width: 75%; background-color: var(--secondary-color);"></div>
+                            </div>
+                            <a href="#" class="btn btn-primary-branded btn-sm w-100">Continue</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not user.is_staff %}
+    <!-- Categories Section (Hidden for Admin) -->
+    <section id="browse" class="mt-5 pb-5">
+        <div class="d-flex align-items-center mb-5">
+            <h2 class="display-6 fw-bold mb-0">Course Streams</h2>
+            <div class="ms-4 h-25 bg-primary opacity-10 flex-grow-1" style="height: 2px !important; border-radius: 5px;"></div>
+        </div>
+
+        <div class="row g-4">
+            {% for category in categories %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card card-branded h-100 p-2 border-0">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="p-3 bg-opacity-10 d-inline-block rounded-4 mb-4" style="background-color: var(--secondary-color); color: var(--secondary-color);">
+                            <i class="bi bi-award fs-2"></i>
+                        </div>
+                        <h3 class="fw-bold mb-3 h4">{{ category.name }}</h3>
+                        <p class="mb-4 flex-grow-1">Access complete subjects and premium notes optimized for the {{ category.name }} curriculum.</p>
+                        <a href="{% url 'category_branches' category.pk %}" class="btn btn-primary-branded w-100 py-3 mt-auto">Browse Track</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+
+    <!-- Contact Section -->
+    <section id="contact" class="pb-5 mt-5">
+        <div class="d-flex align-items-center mb-5">
+            <h2 class="display-6 fw-bold mb-0">Contact Information</h2>
+            <div class="ms-4 h-25 bg-secondary-branded opacity-25 flex-grow-1" style="height: 2px !important; border-radius: 5px;"></div>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <div class="col-lg-12">
+                <div class="card card-branded border-0 p-4 p-md-5">
+                    <div class="row gy-5">
+                        <div class="col-md-4 text-center border-md-end" style="border-color: var(--border-color) !important;">
+                            <div class="p-3 bg-opacity-10 d-inline-block rounded-circle mb-3" style="background-color: var(--secondary-color); color: var(--secondary-color);">
+                                <i class="bi bi-person-badge fs-2"></i>
+                            </div>
+                            <h5 class="fw-bold mb-1">Director</h5>
+                            <p class="mb-0 fs-5 text-main">Kalpesh Patil</p>
+                        </div>
+                        <div class="col-md-4 text-center border-md-end" style="border-color: var(--border-color) !important;">
+                            <div class="p-3 bg-opacity-10 d-inline-block rounded-circle mb-3" style="background-color: var(--secondary-color); color: var(--secondary-color);">
+                                <i class="bi bi-telephone-inbound fs-2"></i>
+                            </div>
+                            <h5 class="fw-bold mb-1">Call Us</h5>
+                            <div class="d-flex flex-column gap-1 mt-2">
+                                <a href="tel:8793309230" class="text-decoration-none text-main fw-bold fs-5">8793309230</a>
+                                <a href="tel:9028289230" class="text-decoration-none text-main fw-bold fs-5">9028289230</a>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="p-3 bg-opacity-10 d-inline-block rounded-circle mb-3" style="background-color: var(--secondary-color); color: var(--secondary-color);">
+                                <i class="bi bi-geo-alt fs-2"></i>
+                            </div>
+                            <h5 class="fw-bold mb-1">Our Departments</h5>
+                            <div class="mt-3 text-start px-md-3">
+                                <p class="small mb-2 text-muted"><i class="bi bi-pin-map text-secondary-branded me-2"></i> <strong>Ramwadi:</strong> near Mumbai- Goa Highway, Diploma College Rd</p>
+                                <p class="small mb-0 text-muted"><i class="bi bi-pin-map text-secondary-branded me-2"></i> <strong>Pen:</strong> Prathmesh Vishnu Appt, Chavadi Naka, Pen</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="mt-5 text-center">
+                        <a href="https://wa.me/918793309230" target="_blank" class="btn btn-secondary-branded px-5 py-3 rounded-pill transition-hover">
+                            <i class="bi bi-whatsapp me-2"></i> Chat on WhatsApp
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock %}
