@@ -147,3 +147,31 @@ class SavedContent(models.Model):
 
     def __str__(self):
         return f"{self.student.full_name} saved {self.content.title}"
+
+class Note(models.Model):
+    title = models.CharField(max_length=200)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='notes')
+    file = models.FileField(upload_to='notes/')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.title} - {self.subject.name}"
+
+class Video(models.Model):
+    title = models.CharField(max_length=200)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='videos')
+    video_url = models.URLField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.title} - {self.subject.name}"
+
+    @property
+    def yt_embed_url(self):
+        if 'youtube.com' in self.video_url:
+            video_id = self.video_url.split('v=')[-1].split('&')[0]
+            return f"https://www.youtube.com/embed/{video_id}"
+        elif 'youtu.be' in self.video_url:
+            video_id = self.video_url.split('/')[-1]
+            return f"https://www.youtube.com/embed/{video_id}"
+        return self.video_url

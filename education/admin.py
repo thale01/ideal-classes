@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django import forms
-from .models import Category, Branch, Subject, Chapter, Content, Year, ContactMessage, StudentAdmission
+from .models import Category, Branch, Subject, Chapter, Content, Year, ContactMessage, StudentAdmission, Note, Video
 
 class ContentInline(admin.TabularInline):
     model = Content
@@ -45,13 +45,21 @@ class SubjectAdminForm(forms.ModelForm):
             'category': 'Course',
         }
 
+class NoteInline(admin.TabularInline):
+    model = Note
+    extra = 1
+
+class VideoInline(admin.TabularInline):
+    model = Video
+    extra = 1
+
 @admin.register(Subject)
 class SubjectAdmin(admin.ModelAdmin):
     form = SubjectAdminForm
     list_display = ('name', 'branch', 'category', 'year')
     list_filter = ('category', 'year', 'branch')
     search_fields = ('name', 'branch__name', 'category__name', 'year__name')
-    inlines = [ChapterInline]
+    inlines = [ChapterInline, NoteInline, VideoInline]
 
 class StudentAdmissionAdminForm(forms.ModelForm):
     class Meta:
@@ -91,4 +99,15 @@ class ContactMessageAdmin(admin.ModelAdmin):
     search_fields = ('name', 'email', 'subject', 'message')
     readonly_fields = ('created_at',)
 
-    
+@admin.register(Note)
+class NoteAdmin(admin.ModelAdmin):
+    list_display = ('title', 'subject', 'created_at')
+    list_filter = ('subject__category', 'subject__branch', 'subject')
+    search_fields = ('title', 'subject__name')
+
+@admin.register(Video)
+class VideoAdmin(admin.ModelAdmin):
+    list_display = ('title', 'subject', 'created_at')
+    list_filter = ('subject__category', 'subject__branch', 'subject')
+    search_fields = ('title', 'subject__name')
+

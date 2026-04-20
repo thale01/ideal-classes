@@ -1,0 +1,13 @@
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db

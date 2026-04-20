@@ -4,7 +4,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
-from .models import Category, Branch, Subject, Content, StudentAdmission, GlobalSetting, Year, ContactMessage, SavedContent
+from .models import Category, Branch, Subject, Content, StudentAdmission, GlobalSetting, Year, ContactMessage, SavedContent, Note, Video
 from .forms import AdmissionForm, ContentForm, CommonPasswordForm, ContactForm
 
 def home(request):
@@ -330,12 +330,37 @@ def student_dashboard(request):
     email = request.session.get('student_email')
     admission = get_object_or_404(StudentAdmission, email=email)
     
-    # FETCH SUBJECTS from ManyToMany field
-    subjects = admission.subjects.all()
+    # 1. Get subjects that match student's profile
+    subjects = Subject.objects.filter(
+        category=admission.category,
+        branch=admission.branch,
+        year=admission.year
+    )
+    
+    # 2. Include manually assigned subjects
+    assigned_subjects = admission.subjects.all()
+    all_subjects = (subjects | assigned_subjects).distinct().order_by('name')
+    
+    # 3. Fetch from new Note/Video models
+    notes = Note.objects.filter(subject__in=all_subjects).select_related('subject')
+    videos = Video.objects.filter(subject__in=all_subjects).select_related('subject')
+    
+    # 4. Fetch from legacy Content model (if any) and normalize
+    # This ensures no data is lost during the transition
+    legacy_content = Content.objects.filter(chapter__subject__in=all_subjects).select_related('chapter__subject')
+    
+    # We will pass these to the template. The template can handle both.
+    # To keep it simple, we can combine them or just pass separately.
+    # Let's pass legacy content too.
     
     return render(request, 'education/student_dashboard.html', {
         'admission': admission,
-        'subjects': subjects,
+        'subjects': all_subjects,
+        'notes': notes,
+        'videos': videos,
+        'legacy_content': legacy_content,
+        'total_notes': notes.count() + legacy_content.filter(content_type='Notes').count(),
+        'total_videos': videos.count() + legacy_content.filter(content_type='Video').count(),
     })
 
 def content_view(request, class_name):
