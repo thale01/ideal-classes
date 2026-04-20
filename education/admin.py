@@ -101,13 +101,13 @@ class ContactMessageAdmin(admin.ModelAdmin):
 
 @admin.register(Note)
 class NoteAdmin(admin.ModelAdmin):
-    list_display = ('title', 'subject', 'created_at')
+    list_display = ('title', 'subject', 'file_url', 'created_at')
     list_filter = ('subject__category', 'subject__branch', 'subject')
-    search_fields = ('title', 'subject__name')
+    search_fields = ('title', 'subject__name', 'file_url')
 
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
-    list_display = ('title', 'subject', 'created_at')
+    list_display = ('title', 'subject', 'video_url', 'created_at')
     list_filter = ('subject__category', 'subject__branch', 'subject')
-    search_fields = ('title', 'subject__name')
+    search_fields = ('title', 'subject__name', 'video_url')
 

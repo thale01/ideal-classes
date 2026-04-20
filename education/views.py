@@ -331,36 +331,28 @@ def student_dashboard(request):
     admission = get_object_or_404(StudentAdmission, email=email)
     
     # 1. Get subjects that match student's profile
+    # Filtering Logic: subject.course == student.course, subject.department == student.department, subject.year == student.year
     subjects = Subject.objects.filter(
         category=admission.category,
         branch=admission.branch,
         year=admission.year
     )
     
-    # 2. Include manually assigned subjects
+    # 2. Include manually assigned subjects (if any)
     assigned_subjects = admission.subjects.all()
     all_subjects = (subjects | assigned_subjects).distinct().order_by('name')
     
-    # 3. Fetch from new Note/Video models
+    # 3. Fetch Notes and Videos related to these subjects
     notes = Note.objects.filter(subject__in=all_subjects).select_related('subject')
     videos = Video.objects.filter(subject__in=all_subjects).select_related('subject')
-    
-    # 4. Fetch from legacy Content model (if any) and normalize
-    # This ensures no data is lost during the transition
-    legacy_content = Content.objects.filter(chapter__subject__in=all_subjects).select_related('chapter__subject')
-    
-    # We will pass these to the template. The template can handle both.
-    # To keep it simple, we can combine them or just pass separately.
-    # Let's pass legacy content too.
     
     return render(request, 'education/student_dashboard.html', {
         'admission': admission,
         'subjects': all_subjects,
         'notes': notes,
         'videos': videos,
-        'legacy_content': legacy_content,
-        'total_notes': notes.count() + legacy_content.filter(content_type='Notes').count(),
-        'total_videos': videos.count() + legacy_content.filter(content_type='Video').count(),
+        'total_notes': notes.count(),
+        'total_videos': videos.count(),
     })
 
 def content_view(request, class_name):

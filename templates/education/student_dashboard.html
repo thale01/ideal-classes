@@ -112,44 +112,14 @@
                             </div>
                         </div>
                         <div class="mt-auto pt-3">
-                            <a href="{{ note.file.url }}" target="_blank" class="btn btn-outline-primary-branded w-100 rounded-pill btn-sm mb-2">
-                                <i class="bi bi-eye me-1"></i> View PDF
-                            </a>
-                            <a href="{{ note.file.url }}" download class="btn btn-primary-branded w-100 rounded-pill btn-sm">
-                                <i class="bi bi-download me-1"></i> Download
+                            <a href="{{ note.get_link }}" target="_blank" class="btn btn-outline-primary-branded w-100 rounded-pill btn-sm mb-2">
+                                <i class="bi bi-eye me-1"></i> View / Download
                             </a>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
-                {% for content in legacy_content %}
-                    {% if content.content_type == 'Notes' %}
-                    <div class="col-md-6 col-lg-4 note-card" data-subject="sub-{{ content.chapter.subject.pk }}">
-                        <div class="card card-branded border-0 p-4 shadow-sm h-100 transition-hover">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="icon-circle bg-danger bg-opacity-10 text-danger me-3">
-                                    <i class="bi bi-file-pdf fs-4"></i>
-                                </div>
-                                <div class="overflow-hidden">
-                                    <h6 class="fw-bold mb-0 text-main text-truncate">{{ content.title }}</h6>
-                                    <p class="small text-muted mb-0">{{ content.chapter.subject.name }} &bull; {{ content.chapter.name }}</p>
-                                </div>
-                            </div>
-                            <div class="mt-auto pt-3">
-                                {% if content.file %}
-                                <a href="{{ content.file.url }}" target="_blank" class="btn btn-outline-primary-branded w-100 rounded-pill btn-sm mb-2">
-                                    <i class="bi bi-eye me-1"></i> View PDF
-                                </a>
-                                <a href="{{ content.file.url }}" download class="btn btn-primary-branded w-100 rounded-pill btn-sm">
-                                    <i class="bi bi-download me-1"></i> Download
-                                </a>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-                {% endfor %}
-                {% if not notes and not legacy_content %}
+                {% if not notes %}
                 <div class="col-12 text-center py-5">
                     <div class="empty-state">
                         <i class="bi bi-file-earmark-x display-1 opacity-10"></i>
@@ -181,31 +151,13 @@
                             <h6 class="fw-bold mb-1 text-main text-truncate">{{ video.title }}</h6>
                             <p class="small text-muted mb-3">{{ video.subject.name }}</p>
                             <a href="{{ video.video_url }}" target="_blank" class="btn btn-secondary-branded w-100 rounded-pill mt-auto">
-                                <i class="bi bi-youtube me-2"></i> Watch on YouTube
+                                <i class="bi bi-youtube me-2"></i> Watch Now
                             </a>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
-                {% for content in legacy_content %}
-                    {% if content.content_type == 'Video' %}
-                    <div class="col-md-6 col-lg-4 video-card" data-subject="sub-{{ content.chapter.subject.pk }}">
-                        <div class="card card-branded border-0 overflow-hidden shadow-sm h-100 transition-hover">
-                            <div class="ratio ratio-16x9 bg-dark">
-                                <iframe src="{{ content.yt_embed_url }}" allowfullscreen></iframe>
-                            </div>
-                            <div class="card-body p-4 d-flex flex-column">
-                                <h6 class="fw-bold mb-1 text-main text-truncate">{{ content.title }}</h6>
-                                <p class="small text-muted mb-3">{{ content.chapter.subject.name }} &bull; {{ content.chapter.name }}</p>
-                                <a href="{{ content.video_url }}" target="_blank" class="btn btn-secondary-branded w-100 rounded-pill mt-auto">
-                                    <i class="bi bi-youtube me-2"></i> Watch on YouTube
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-                {% endfor %}
-                {% if not videos and not legacy_content %}
+                {% if not videos %}
                 <div class="col-12 text-center py-5">
                     <div class="empty-state">
                         <i class="bi bi-play-circle-x display-1 opacity-10"></i>

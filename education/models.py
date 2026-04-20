@@ -151,11 +151,20 @@ class SavedContent(models.Model):
 class Note(models.Model):
     title = models.CharField(max_length=200)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='notes')
-    file = models.FileField(upload_to='notes/')
+    file = models.FileField(upload_to='notes/', blank=True, null=True, help_text="Upload a file or provide a URL below")
+    file_url = models.URLField(blank=True, null=True, help_text="Link to external storage (Google Drive, Cloudinary, etc.)")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.title} - {self.subject.name}"
+
+    @property
+    def get_link(self):
+        if self.file_url:
+            return self.file_url
+        if self.file:
+            return self.file.url
+        return "#"
 
 class Video(models.Model):
     title = models.CharField(max_length=200)
