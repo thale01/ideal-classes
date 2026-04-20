@@ -62,8 +62,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const yearSelect = document.getElementById('id_year');
 
     function toggleYear() {
-        const categoryText = categorySelect.options[categorySelect.selectedIndex].text;
-        if (categoryText === 'Diploma' || categoryText === 'Degree') {
+        const categoryText = categorySelect.options[categorySelect.selectedIndex].text.toLowerCase();
+        if (categoryText.includes('diploma') || categoryText.includes('degree')) {
             yearContainer.style.display = 'block';
             yearSelect.required = true;
         } else {
