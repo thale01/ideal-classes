@@ -259,6 +259,18 @@
             transition: var(--transition);
         }
         .theme-toggle:hover { background: rgba(255,255,255,0.2); }
+        
+        .text-nowrap { white-space: nowrap !important; }
+        
+        @media (max-width: 576px) {
+            .btn-secondary-branded {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+            .navbar-branded {
+                padding: 0.75rem 1rem;
+            }
+        }
 
         /* Footer */
         .footer-branded {
@@ -390,43 +402,46 @@
 
     <!-- Page Content -->
     <div id="content">
-        <nav class="navbar navbar-expand-lg navbar-dark navbar-branded px-4 sticky-top">
-            <div class="container-fluid">
+        <nav class="navbar navbar-dark navbar-branded px-3 px-md-4 sticky-top">
+            <div class="container-fluid d-flex flex-nowrap align-items-center justify-content-between">
+                <!-- Left Side: Menu + Logo -->
                 <div class="d-flex align-items-center">
                     {% if user.is_authenticated or request.session.is_student %}
-                    <button type="button" id="sidebarCollapse" class="btn text-white me-3 border-0 p-0 shadow-none">
+                    <button type="button" id="sidebarCollapse" class="btn text-white me-2 me-md-3 border-0 p-0 shadow-none">
                         <i class="bi bi-list fs-3"></i>
                     </button>
                     {% endif %}
-                    <div class="navbar-brand d-flex align-items-center logo-trigger contact-trigger" title="Click for Contact Details">
-                        <img src="{% static 'images/logo.png' %}" alt="Logo" height="35">
+                    <div class="navbar-brand d-flex align-items-center logo-trigger contact-trigger m-0 p-0" title="Click for Contact Details">
+                        <img src="{% static 'images/logo.png' %}" alt="Logo" height="30" class="d-inline-block">
                     </div>
                 </div>
 
-                <form class="d-none d-md-flex mx-auto w-50" action="{% url 'search' %}" method="get">
+                <!-- Middle: Search (Hidden on Mobile) -->
+                <form class="d-none d-lg-flex mx-auto w-50" action="{% url 'search' %}" method="get">
                     <div class="input-group">
                         <span class="input-group-text bg-white bg-opacity-10 border-0 text-white opacity-50 ps-3 pe-2">
                             <i class="bi bi-search me-1"></i>
                         </span>
-                        <input class="form-control bg-white bg-opacity-10 border-0 text-white px-3" type="search" name="q" placeholder="Search subjects or curriculum..." style="box-shadow: none;">
+                        <input class="form-control bg-white bg-opacity-10 border-0 text-white px-3" type="search" name="q" placeholder="Search subjects..." style="box-shadow: none;">
                     </div>
                 </form>
 
-                <div class="d-flex align-items-center ms-auto">
-                    <div class="theme-toggle me-3" id="themeToggle" title="Toggle Theme">
+                <!-- Right Side: Theme + Logout -->
+                <div class="d-flex align-items-center flex-nowrap">
+                    <div class="theme-toggle me-2 me-md-3" id="themeToggle" title="Toggle Theme">
                         <i class="bi bi-moon-stars" id="themeIcon"></i>
                     </div>
                     
                     {% if user.is_authenticated %}
-                        <form action="{% url 'logout' %}" method="post" class="d-none d-sm-block">
+                        <form action="{% url 'logout' %}" method="post" class="m-0">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-secondary-branded px-4">Logout (Admin)</button>
+                            <button type="submit" class="btn btn-secondary-branded btn-sm px-3 rounded-pill text-nowrap">Logout (Admin)</button>
                         </form>
                     {% elif request.session.is_student %}
-                        <a href="{% url 'student_logout' %}" class="btn btn-secondary-branded px-4 shadow-sm">Logout (Student)</a>
+                        <a href="{% url 'student_logout' %}" class="btn btn-secondary-branded btn-sm px-3 rounded-pill shadow-sm text-nowrap">Logout (Student)</a>
                     {% else %}
-                        <a href="{% url 'login_selection' %}" class="nav-link text-white me-4 fw-500">Login</a>
-                        <a href="{% url 'admission_apply' %}" class="btn btn-secondary-branded px-4">Admission Open</a>
+                        <a href="{% url 'login_selection' %}" class="nav-link text-white me-3 fw-bold small">Login</a>
+                        <a href="{% url 'admission_apply' %}" class="btn btn-secondary-branded btn-sm px-3 rounded-pill">Admission</a>
                     {% endif %}
                 </div>
             </div>
