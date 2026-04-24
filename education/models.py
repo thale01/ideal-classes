@@ -184,3 +184,12 @@ class Video(models.Model):
             video_id = self.video_url.split('/')[-1]
             return f"https://www.youtube.com/embed/{video_id}"
         return self.video_url
+
+class FCMToken(models.Model):
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='fcm_tokens', null=True, blank=True)
+    token = models.TextField(unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        name = self.user.username if self.user else "Anonymous"
+        return f"Token for {name} ({self.created_at.strftime('%Y-%m-%d')})"

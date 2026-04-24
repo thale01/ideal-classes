@@ -6,6 +6,34 @@ from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from .models import Category, Branch, Subject, Content, StudentAdmission, GlobalSetting, Year, ContactMessage, SavedContent, Note, Video
 from .forms import AdmissionForm, ContentForm, CommonPasswordForm, ContactForm
+import json
+from django.http import JsonResponse, HttpResponse
+from .models import Category, Branch, Subject, Content, StudentAdmission, GlobalSetting, Year, ContactMessage, SavedContent, Note, Video, FCMToken
+
+def save_fcm_token(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            token = data.get('token')
+            if token:
+                user = request.user if request.user.is_authenticated else None
+                FCMToken.objects.update_or_create(
+                    token=token,
+                    defaults={'user': user}
+                )
+                return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'invalid method'}, status=405)
+
+def firebase_messaging_sw(request):
+    file_path = os.path.join(settings.BASE_DIR, 'firebase-messaging-sw.js')
+    try:
+        with open(file_path, 'r') as f:
+            content = f.read()
+        return HttpResponse(content, content_type='application/javascript')
+    except FileNotFoundError:
+        return HttpResponse("Service worker file not found.", status=404)
 
 def home(request):
     categories = Category.objects.all()

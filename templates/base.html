@@ -606,5 +606,61 @@
         </div>
     </div>
 </div>
+
+<!-- Firebase Cloud Messaging -->
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js"></script>
+
+<script>
+    // Replace with your actual Firebase config
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_DOMAIN",
+        projectId: "YOUR_PROJECT_ID",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID",
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
+
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/firebase-messaging-sw.js')
+            .then(function(registration) {
+                console.log('Firebase Service Worker registered');
+            })
+            .catch(function(error) {
+                console.log('Service Worker registration failed:', error);
+            });
+    }
+
+    // Request Permission and Get Token (only for logged in users/admins)
+    {% if user.is_authenticated %}
+    Notification.requestPermission().then((permission) => {
+        if (permission === 'granted') {
+            messaging.getToken({ vapidKey: 'YOUR_VAPID_KEY' }).then((currentToken) => {
+                if (currentToken) {
+                    console.log("FCM Token:", currentToken);
+                    // Send token to backend
+                    fetch("/save-token/", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": "{{ csrf_token }}"
+                        },
+                        body: JSON.stringify({ token: currentToken })
+                    });
+                } else {
+                    console.log('No registration token available. Request permission to generate one.');
+                }
+            }).catch((err) => {
+                console.log('An error occurred while retrieving token. ', err);
+            });
+        }
+    });
+    {% endif %}
+</script>
 </body>
+
 </html>
