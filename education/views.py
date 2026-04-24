@@ -274,11 +274,11 @@ def update_admission_status(request, pk, status):
                     [admission.email],
                     fail_silently=False,
                 )
-                messages.success(request, f"Admission for {admission.name} has been Approved and email sent.")
+                messages.success(request, f"Admission for {admission.full_name} has been Approved and email sent.")
             except Exception as e:
                 messages.warning(request, f"Admission Approved but email failed: {str(e)}")
         else:
-            messages.success(request, f"Admission for {admission.name} has been {status}")
+            messages.success(request, f"Admission for {admission.full_name} has been {status}")
             
     return redirect('admin_admissions')
 
