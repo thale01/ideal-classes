@@ -8,6 +8,7 @@ from .models import Category, Branch, Subject, Content, StudentAdmission, Global
 from .forms import AdmissionForm, ContentForm, CommonPasswordForm, ContactForm
 import json
 from django.http import JsonResponse, HttpResponse
+from django.conf import settings
 from .models import Category, Branch, Subject, Content, StudentAdmission, GlobalSetting, Year, ContactMessage, SavedContent, Note, Video, FCMToken
 import firebase_admin
 from firebase_admin import messaging, credentials
