@@ -9,17 +9,50 @@ from .forms import AdmissionForm, ContentForm, CommonPasswordForm, ContactForm
 import json
 from django.http import JsonResponse, HttpResponse
 from .models import Category, Branch, Subject, Content, StudentAdmission, GlobalSetting, Year, ContactMessage, SavedContent, Note, Video, FCMToken
+import firebase_admin
+from firebase_admin import messaging, credentials
+import os
 
+# Initialize Firebase (only once)
+if not firebase_admin._apps:
+    try:
+        # Check if service account JSON exists in env
+        cred_path = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON')
+        if cred_path:
+            cred = credentials.Certificate(cred_path)
+            firebase_admin.initialize_app(cred)
+    except Exception as e:
+        print(f"Firebase Initialization Error: {e}")
+
+def send_fcm_notification(title, body):
+    tokens = FCMToken.objects.values_list('token', flat=True)
+    if not tokens:
+        return
+    
+    # We use Multicast for multiple tokens
+    message = messaging.MulticastMessage(
+        notification=messaging.Notification(
+            title=title,
+            body=body,
+        ),
+        tokens=list(tokens),
+    )
+    try:
+        response = messaging.send_multicast(message)
+        print(f"Successfully sent {response.success_count} notifications")
+    except Exception as e:
+        print(f"Error sending FCM: {e}")
+
+@login_required
 def save_fcm_token(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             token = data.get('token')
             if token:
-                user = request.user if request.user.is_authenticated else None
                 FCMToken.objects.update_or_create(
                     token=token,
-                    defaults={'user': user}
+                    defaults={'user': request.user}
                 )
                 return JsonResponse({'status': 'success'})
         except Exception as e:
@@ -138,8 +171,15 @@ def admission_apply(request):
     if request.method == 'POST':
         form = AdmissionForm(request.POST)
         if form.is_valid():
-            form.save()
+            admission = form.save()
             messages.success(request, "Your admission request has been submitted and is under review")
+            
+            # Trigger FCM Notification to Admin
+            send_fcm_notification(
+                title="New Admission",
+                body=f"A student {admission.full_name} has submitted the admission form for {admission.category.name}."
+            )
+            
             return redirect('admission_apply')
     else:
         form = AdmissionForm()

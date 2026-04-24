@@ -8,7 +8,7 @@ from education import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('firebase-messaging-sw.js', views.firebase_messaging_sw),
-    path('save-token/', views.save_fcm_token),
+    path('api/save-token/', views.save_fcm_token),
     path('', include('education.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
