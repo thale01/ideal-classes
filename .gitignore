@@ -11,3 +11,9 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+.env
+.venv
+dist/
+build/
+*.pyo
+*.swp
