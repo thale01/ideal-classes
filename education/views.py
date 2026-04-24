@@ -16,11 +16,20 @@ import os
 # Initialize Firebase (only once)
 if not firebase_admin._apps:
     try:
-        # Check if service account JSON exists in env
-        cred_path = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON')
+        # Check Render Secret File location first, then environment variable
+        render_secret = '/etc/secrets/firebase_service_account.json'
+        env_secret = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON')
+        
+        cred_path = None
+        if os.path.exists(render_secret):
+            cred_path = render_secret
+        elif env_secret:
+            cred_path = env_secret
+            
         if cred_path:
             cred = credentials.Certificate(cred_path)
             firebase_admin.initialize_app(cred)
+            print("Firebase Initialized Successfully")
     except Exception as e:
         print(f"Firebase Initialization Error: {e}")
 
