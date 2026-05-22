@@ -22,13 +22,14 @@ class AdmissionForm(forms.ModelForm):
 class ContentForm(forms.ModelForm):
     class Meta:
         model = Content
-        fields = ['chapter', 'title', 'description', 'content_type', 'file', 'video_url']
+        fields = ['chapter', 'title', 'description', 'content_type', 'file', 'file_url', 'video_url']
         widgets = {
             'chapter': forms.Select(attrs={'class': 'form-select'}),
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Content Title'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Brief description'}),
             'content_type': forms.Select(attrs={'class': 'form-select'}),
             'file': forms.FileInput(attrs={'class': 'form-control'}),
+            'file_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'External File URL (Google Drive)'}),
             'video_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'YouTube URL'}),
         }
 

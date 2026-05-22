@@ -33,7 +33,7 @@
                     <input type="hidden" name="status" value="{{ status_filter }}">
                     <div class="col-md-4">
                         <label class="form-label small fw-bold opacity-50">Course</label>
-                        <select name="category" class="form-select rounded-3">
+                        <select name="category" id="id_category_filter" class="form-select rounded-3">
                             <option value="">All Courses</option>
                             <option value="11th" {% if category_filter == '11th' %}selected{% endif %}>11th</option>
                             <option value="12th" {% if category_filter == '12th' %}selected{% endif %}>12th</option>
@@ -43,7 +43,9 @@
                     </div>
                     <div class="col-md-5">
                         <label class="form-label small fw-bold opacity-50">Department</label>
-                        <input type="text" name="branch" class="form-control rounded-3" placeholder="Search department..." value="{{ branch_filter }}">
+                        <select name="branch" id="id_branch_filter" class="form-select rounded-3">
+                            <option value="">All Departments</option>
+                        </select>
                     </div>
                     <div class="col-md-3 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary-branded w-100 py-2">Apply</button>

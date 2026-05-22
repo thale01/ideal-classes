@@ -336,7 +336,7 @@
     <nav id="sidebar">
         <div class="sidebar-header">
             <div class="logo-trigger contact-trigger" title="Click for Contact Details">
-                <img src="{% static 'images/logo.png' %}" alt="Logo" height="50" class="mb-2">
+                <img src="{% static 'images/logo.png' %}" alt="Logo" height="50" class="mb-2" loading="lazy">
             </div>
         </div>
         <div class="sidebar-links">
@@ -412,7 +412,7 @@
                     </button>
                     {% endif %}
                     <div class="navbar-brand d-flex align-items-center logo-trigger contact-trigger m-0 p-0" title="Click for Contact Details">
-                        <img src="{% static 'images/logo.png' %}" alt="Logo" height="30" class="d-inline-block">
+                        <img src="{% static 'images/logo.png' %}" alt="Logo" height="30" class="d-inline-block" loading="lazy">
                     </div>
                 </div>
 
@@ -463,7 +463,7 @@
             <div class="container">
                 <div class="row gy-4">
                     <div class="col-lg-4">
-                        <img src="{% static 'images/logo.png' %}" alt="Logo" height="60" class="mb-3">
+                        <img src="{% static 'images/logo.png' %}" alt="Logo" height="60" class="mb-3" loading="lazy">
                         <p class="opacity-50 pe-lg-5">Empowering students with structured, high-quality educational resources across 12th, Diploma, and Degree curriculum.</p>
                     </div>
                     <div class="col-lg-2 col-md-4">
@@ -621,45 +621,53 @@
         appId: "YOUR_APP_ID",
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const messaging = firebase.messaging();
+    if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY") {
+        try {
+            firebase.initializeApp(firebaseConfig);
+            const messaging = firebase.messaging();
 
-    // Register Service Worker
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/firebase-messaging-sw.js')
-            .then(function(registration) {
-                console.log('Firebase Service Worker registered');
-            })
-            .catch(function(error) {
-                console.log('Service Worker registration failed:', error);
-            });
-    }
-
-    // Request Permission and Get Token (only for logged in users/admins)
-    {% if user.is_authenticated %}
-    Notification.requestPermission().then((permission) => {
-        if (permission === 'granted') {
-            messaging.getToken({ vapidKey: 'YOUR_VAPID_KEY' }).then((currentToken) => {
-                if (currentToken) {
-                    console.log("FCM Token:", currentToken);
-                    // Send token to backend
-                    fetch("/api/save-token/", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRFToken": "{{ csrf_token }}"
-                        },
-                        body: JSON.stringify({ token: currentToken })
+            // Register Service Worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/firebase-messaging-sw.js')
+                    .then(function(registration) {
+                        console.log('Firebase Service Worker registered');
+                    })
+                    .catch(function(error) {
+                        console.log('Service Worker registration failed:', error);
                     });
-                } else {
-                    console.log('No registration token available. Request permission to generate one.');
+            }
+
+            // Request Permission and Get Token (only for logged in users/admins)
+            {% if user.is_authenticated %}
+            Notification.requestPermission().then((permission) => {
+                if (permission === 'granted') {
+                    messaging.getToken({ vapidKey: 'YOUR_VAPID_KEY' }).then((currentToken) => {
+                        if (currentToken && currentToken !== 'YOUR_VAPID_KEY') {
+                            console.log("FCM Token:", currentToken);
+                            // Send token to backend
+                            fetch("/api/save-token/", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRFToken": "{{ csrf_token }}"
+                                },
+                                body: JSON.stringify({ token: currentToken })
+                            });
+                        } else {
+                            console.log('No registration token available. Request permission to generate one.');
+                        }
+                    }).catch((err) => {
+                        console.log('An error occurred while retrieving token. ', err);
+                    });
                 }
-            }).catch((err) => {
-                console.log('An error occurred while retrieving token. ', err);
             });
+            {% endif %}
+        } catch (e) {
+            console.warn("Firebase initialization skipped: ", e);
         }
-    });
-    {% endif %}
+    } else {
+        console.log("Firebase push notifications not configured (credentials are placeholders).");
+    }
 </script>
 </body>
 

@@ -62,6 +62,14 @@ class Chapter(models.Model):
     def __str__(self):
         return f"{self.name} | {self.subject.name}"
 
+    @property
+    def videos(self):
+        return [c for c in self.contents.all() if c.content_type == 'Video']
+
+    @property
+    def notes(self):
+        return [c for c in self.contents.all() if c.content_type == 'Notes']
+
 class Content(models.Model):
     CONTENT_TYPES = (
         ('Notes', 'Notes'),
@@ -72,12 +80,21 @@ class Content(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True, null=True)
     content_type = models.CharField(max_length=10, choices=CONTENT_TYPES)
-    file = models.FileField(upload_to='notes/', blank=True, null=True)
+    file = models.FileField(upload_to='notes/', blank=True, null=True, help_text="Upload a file or provide a URL below")
+    file_url = models.URLField(blank=True, null=True, help_text="Link to external storage (Google Drive, Cloudinary, etc.)")
     video_url = models.URLField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.title} ({self.content_type})"
+
+    @property
+    def get_file_link(self):
+        if self.file_url:
+            return self.file_url
+        if self.file:
+            return self.file.url
+        return "#"
 
     @property
     def yt_embed_url(self):
@@ -125,16 +142,6 @@ class ContactMessage(models.Model):
 
     def __str__(self):
         return f"Message from {self.name} - {self.subject}"
-    
-    @property
-    def yt_embed_url(self):
-        if self.video_url and 'youtube.com' in self.video_url:
-            video_id = self.video_url.split('v=')[-1].split('&')[0]
-            return f"https://www.youtube.com/embed/{video_id}"
-        elif self.video_url and 'youtu.be' in self.video_url:
-            video_id = self.video_url.split('/')[-1]
-            return f"https://www.youtube.com/embed/{video_id}"
-        return self.video_url
 
 class SavedContent(models.Model):
     student = models.ForeignKey(StudentAdmission, on_delete=models.CASCADE, related_name='saved_items')

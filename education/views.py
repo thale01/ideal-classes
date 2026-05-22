@@ -79,7 +79,7 @@ def firebase_messaging_sw(request):
         return HttpResponse("Service worker file not found.", status=404)
 
 def home(request):
-    categories = Category.objects.all()
+    categories = Category.objects.all().only('name')
     context = {'categories': categories}
     
     if request.user.is_staff:
@@ -204,7 +204,7 @@ def student_login(request):
         password = request.POST.get('password')
         
         try:
-            admission = StudentAdmission.objects.get(email=email)
+            admission = StudentAdmission.objects.get(email__iexact=email)
         except StudentAdmission.DoesNotExist:
             messages.error(request, "Account not found. Please apply for admission first.")
             return redirect('student_login')
@@ -332,7 +332,8 @@ def admin_admissions(request):
 
 @user_passes_test(lambda u: u.is_staff)
 def manage_content(request):
-    contents = Content.objects.all().order_by('-created_at')
+    # Fetch only latest 50 items and select related for performance
+    contents = Content.objects.select_related('chapter', 'chapter__subject').all().order_by('-created_at')[:50]
     
     if request.method == 'POST':
         from .forms import ContentForm
@@ -376,7 +377,7 @@ def terms_of_use(request):
     return render(request, 'education/terms_of_use.html')
 
 def curriculum(request):
-    categories = Category.objects.prefetch_related('years').all()
+    categories = Category.objects.prefetch_related('years').all().only('name')
     return render(request, 'education/curriculum.html', {'categories': categories})
 
 def faculty_login(request):

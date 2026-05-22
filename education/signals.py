@@ -4,7 +4,7 @@ from .models import StudentAdmission, Subject
 
 @receiver(post_save, sender=StudentAdmission)
 def assign_subjects_on_approval(sender, instance, created, **kwargs):
-    if instance.status == 'Approved':
+    if instance.status == 'Approved' and not instance.subjects.exists():
         # Filter matching subjects
         matching_subjects = Subject.objects.filter(
             branch=instance.branch,
