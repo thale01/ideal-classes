@@ -78,12 +78,14 @@ class StudentAdmissionAdmin(admin.ModelAdmin):
     search_fields = ('full_name', 'email', 'phone')
     readonly_fields = ('created_at',)
     ordering = ('-created_at',)
+    list_select_related = ('category', 'branch', 'year')
 
 @admin.register(Chapter)
 class ChapterAdmin(admin.ModelAdmin):
     list_display = ('name', 'subject', 'order')
     list_filter = ('subject__category', 'subject__branch', 'subject')
     search_fields = ('name', 'subject__name')
+    list_select_related = ('subject', 'subject__branch', 'subject__category', 'subject__year')
     inlines = [ContentInline]
 
 @admin.register(Content)
@@ -91,6 +93,7 @@ class ContentAdmin(admin.ModelAdmin):
     list_display = ('title', 'chapter', 'content_type', 'created_at')
     list_filter = ('content_type', 'chapter__subject__category', 'chapter__subject')
     search_fields = ('title', 'description', 'chapter__name', 'chapter__subject__name')
+    list_select_related = ('chapter', 'chapter__subject')
 
 @admin.register(ContactMessage)
 class ContactMessageAdmin(admin.ModelAdmin):
@@ -104,10 +107,12 @@ class NoteAdmin(admin.ModelAdmin):
     list_display = ('title', 'subject', 'file_url', 'created_at')
     list_filter = ('subject__category', 'subject__branch', 'subject')
     search_fields = ('title', 'subject__name', 'file_url')
+    list_select_related = ('subject', 'subject__branch', 'subject__category', 'subject__year')
 
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
     list_display = ('title', 'subject', 'video_url', 'created_at')
     list_filter = ('subject__category', 'subject__branch', 'subject')
     search_fields = ('title', 'subject__name', 'video_url')
+    list_select_related = ('subject', 'subject__branch', 'subject__category', 'subject__year')
 
