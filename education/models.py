@@ -46,12 +46,32 @@ class Subject(models.Model):
         return sum(chapter.contents.count() for chapter in self.chapters.all())
 
     def __str__(self):
-        # Format: Subject Name - Course - Department - Year (with dynamic N+1 query optimization)
-        category_name = self.category.name if 'category' in self.__dict__ else getattr(self.category, 'name', '')
-        branch_name = self.branch.name if 'branch' in self.__dict__ else getattr(self.branch, 'name', '')
+        # Format: Subject Name - Course - Department - Year (with dynamic N+1 query optimization and complete crash protection)
+        from django.core.exceptions import ObjectDoesNotExist
+
+        try:
+            category_name = self.category.name if 'category' in self.__dict__ else getattr(self.category, 'name', '')
+        except ObjectDoesNotExist:
+            category_name = f"Course ID: {self.category_id}"
+        except Exception:
+            category_name = "Unknown Course"
+
+        try:
+            branch_name = self.branch.name if 'branch' in self.__dict__ else getattr(self.branch, 'name', '')
+        except ObjectDoesNotExist:
+            branch_name = f"Dept ID: {self.branch_id}"
+        except Exception:
+            branch_name = "Unknown Department"
+
         year_name = ""
         if self.year_id:
-            year_name = f" - {self.year.name}" if 'year' in self.__dict__ else f" - {getattr(self.year, 'name', '')}"
+            try:
+                year_name = f" - {self.year.name}" if 'year' in self.__dict__ else f" - {getattr(self.year, 'name', '')}"
+            except ObjectDoesNotExist:
+                year_name = f" - Year ID: {self.year_id}"
+            except Exception:
+                year_name = " - Unknown Year"
+
         return f"{self.name} - {category_name} - {branch_name}{year_name}"
 
 class Chapter(models.Model):
