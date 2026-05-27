@@ -104,9 +104,9 @@ class ContactMessageAdmin(admin.ModelAdmin):
 
 @admin.register(Note)
 class NoteAdmin(admin.ModelAdmin):
-    list_display = ('title', 'subject', 'file_url', 'created_at')
+    list_display = ('title', 'subject', 'drive_link', 'created_at')
     list_filter = ('subject__category', 'subject__branch', 'subject')
-    search_fields = ('title', 'subject__name', 'file_url')
+    search_fields = ('title', 'subject__name', 'drive_link')
     list_select_related = ('subject', 'subject__branch', 'subject__category', 'subject__year')
 
 @admin.register(Video)
