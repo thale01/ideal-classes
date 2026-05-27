@@ -46,8 +46,11 @@ class Subject(models.Model):
         return sum(chapter.contents.count() for chapter in self.chapters.all())
 
     def __str__(self):
-        year_name = f" - {self.year.name}" if self.year else ""
-        return f"{self.name} ({self.branch.name} - {self.category.name}{year_name})"
+        # Prevent N+1 database queries when rendering foreign key fields in admin filters without select_related
+        if 'branch' in self.__dict__ and 'category' in self.__dict__:
+            year_name = f" - {self.year.name}" if ('year' in self.__dict__ and self.year) else ""
+            return f"{self.name} ({self.branch.name} - {self.category.name}{year_name})"
+        return self.name
 
 class Chapter(models.Model):
     subject = models.ForeignKey(Subject, related_name='chapters', on_delete=models.CASCADE)
