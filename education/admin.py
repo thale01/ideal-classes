@@ -109,6 +109,11 @@ class NoteAdmin(admin.ModelAdmin):
     search_fields = ('title', 'subject__name', 'drive_link')
     list_select_related = ('subject', 'subject__branch', 'subject__category', 'subject__year')
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "subject":
+            kwargs["queryset"] = Subject.objects.select_related('branch', 'category', 'year')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
     list_display = ('title', 'subject', 'video_url', 'created_at')
