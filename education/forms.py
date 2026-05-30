@@ -1,5 +1,5 @@
 from django import forms
-from .models import StudentAdmission, Content, Branch, Chapter, ContactMessage
+from .models import StudentAdmission, Content, Branch, Chapter, ContactMessage, Note, Subject
 
 class AdmissionForm(forms.ModelForm):
     class Meta:
@@ -18,6 +18,20 @@ class AdmissionForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['year'].required = False
         self.fields['branch'].queryset = Branch.objects.all().order_by('name')
+
+class NoteForm(forms.ModelForm):
+    class Meta:
+        model = Note
+        fields = ['subject', 'title', 'drive_link']
+        widgets = {
+            'subject': forms.Select(attrs={'class': 'form-select'}),
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Note Title (e.g. Winter Question Practice)'}),
+            'drive_link': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'Google Drive PDF Link'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['subject'].queryset = Subject.objects.select_related('category', 'branch', 'year').order_by('name')
 
 class ContentForm(forms.ModelForm):
     class Meta:

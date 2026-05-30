@@ -5,8 +5,8 @@
 <div class="animate__animated animate__fadeIn">
     <div class="d-flex justify-content-between align-items-center mb-5">
         <div>
-            <h1 class="display-5 fw-bold mb-1">Manage Course Content</h1>
-            <p class="opacity-75">Upload notes and video lectures organized by Subject & Chapter.</p>
+            <h1 class="display-5 fw-bold mb-1">Manage Study Notes</h1>
+            <p class="opacity-75">Upload and manage Google Drive PDF study notes for subjects.</p>
         </div>
         <a href="{% url 'home' %}" class="btn btn-outline-primary-branded px-4 shadow-sm">
             <i class="bi bi-arrow-left me-2"></i> Back to Dashboard
@@ -17,12 +17,12 @@
         <!-- Upload Form -->
         <div class="col-lg-4">
             <div class="card card-branded border-0 p-4 sticky-top" style="top: 100px;">
-                <h4 class="fw-bold mb-4">Add Hierarchical Content</h4>
-                <form method="POST" enctype="multipart/form-data">
+                <h4 class="fw-bold mb-4">Add Study Note</h4>
+                <form method="POST">
                     {% csrf_token %}
                     {{ form|crispy }}
                     <button type="submit" class="btn btn-primary-branded w-100 py-3 mt-3 shadow-sm">
-                        <i class="bi bi-cloud-upload me-2"></i> Upload to Chapter
+                        <i class="bi bi-plus-circle me-2"></i> Add Study Note
                     </button>
                 </form>
             </div>
@@ -31,38 +31,43 @@
         <!-- Content List -->
         <div class="col-lg-8">
             <div class="card card-branded border-0 p-4 shadow-sm h-100">
-                <h4 class="fw-bold mb-4">Existing Chapter Materials</h4>
+                <h4 class="fw-bold mb-4">Existing Study Notes</h4>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
                         <thead class="bg-light bg-opacity-10">
                             <tr>
-                                <th class="py-3 px-4 border-0">Resource Title</th>
-                                <th class="py-3 border-0">Subject & Chapter</th>
-                                <th class="py-3 border-0">Type</th>
-                                <th class="py-3 border-0">Status</th>
+                                <th class="py-3 px-4 border-0">Note Title</th>
+                                <th class="py-3 border-0">Subject Details</th>
+                                <th class="py-3 border-0">Drive Link</th>
+                                <th class="py-3 border-0">Date Added</th>
                                 <th class="py-3 px-4 border-0 text-end">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for content in contents %}
                             <tr>
-                                <td class="py-3 px-4 border-0 fw-bold">{{ content.title }}</td>
+                                <td class="py-3 px-4 border-0 fw-bold text-primary-branded">{{ content.title }}</td>
                                 <td class="py-3 border-0">
                                     <div class="d-flex flex-column">
-                                        <span class="fw-bold small">{{ content.chapter.subject.name }}</span>
-                                        <small class="text-muted">{{ content.chapter.name }}</small>
+                                        <span class="fw-bold small">{{ content.subject.name }}</span>
+                                        <small class="text-muted">
+                                            {{ content.subject.category.name }} | {{ content.subject.branch.name }}
+                                            {% if content.subject.year %} | {{ content.subject.year.name }}{% endif %}
+                                        </small>
                                     </div>
                                 </td>
                                 <td class="py-3 border-0">
-                                    {% if content.content_type == 'Notes' %}
-                                        <span class="badge bg-light rounded-pill px-3 py-2"><i class="bi bi-file-pdf me-1"></i> PDF Note</span>
+                                    {% if content.drive_link %}
+                                        <a href="{{ content.drive_link }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                            <i class="bi bi-google me-1"></i> Open PDF
+                                        </a>
                                     {% else %}
-                                        <span class="badge bg-light rounded-pill px-3 py-2"><i class="bi bi-play-circle me-1"></i> Lecture</span>
+                                        <span class="text-muted small">No Link</span>
                                     {% endif %}
                                 </td>
-                                <td class="py-3 border-0 small opacity-50">Active Library</td>
+                                <td class="py-3 border-0 small opacity-75">{{ content.created_at|date:"M d, Y" }}</td>
                                 <td class="py-3 px-4 border-0 text-end">
-                                    <a href="{% url 'delete_content' content.pk %}" class="btn btn-sm btn-outline-danger border-0 p-2" onclick="return confirm('Delete this content?')">
+                                    <a href="{% url 'delete_content' content.pk %}" class="btn btn-sm btn-outline-danger border-0 p-2" onclick="return confirm('Delete this study note?')">
                                         <i class="bi bi-trash fs-5"></i>
                                     </a>
                                 </td>
@@ -70,8 +75,8 @@
                             {% empty %}
                             <tr>
                                 <td colspan="5" class="text-center py-5 opacity-25">
-                                    <i class="bi bi-inbox display-4 mb-3 d-block"></i>
-                                    No content uploaded yet. Use the form to start building your curriculum.
+                                    <i class="bi bi-file-pdf display-4 mb-3 d-block"></i>
+                                    No study notes added yet. Use the form to start adding notes!
                                 </td>
                             </tr>
                             {% endfor %}

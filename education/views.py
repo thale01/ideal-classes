@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from .models import Category, Branch, Subject, Content, StudentAdmission, GlobalSetting, Year, ContactMessage, SavedContent, Note, Video
-from .forms import AdmissionForm, ContentForm, CommonPasswordForm, ContactForm
+from .forms import AdmissionForm, ContentForm, CommonPasswordForm, ContactForm, NoteForm
 import json
 from django.http import JsonResponse, HttpResponse
 from django.conf import settings
@@ -332,19 +332,19 @@ def admin_admissions(request):
 
 @user_passes_test(lambda u: u.is_staff)
 def manage_content(request):
-    # Fetch only latest 50 items and select related for performance
-    contents = Content.objects.select_related('chapter', 'chapter__subject').all().order_by('-created_at')[:50]
+    # Fetch only latest 100 notes and select related for performance
+    contents = Note.objects.select_related('subject', 'subject__category', 'subject__branch', 'subject__year').all().order_by('-created_at')[:100]
     
     if request.method == 'POST':
-        from .forms import ContentForm
-        form = ContentForm(request.POST, request.FILES)
+        from .forms import NoteForm
+        form = NoteForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, "Hierarchical content uploaded successfully!")
+            messages.success(request, "Study note added successfully!")
             return redirect('manage_content')
     else:
-        from .forms import ContentForm
-        form = ContentForm()
+        from .forms import NoteForm
+        form = NoteForm()
         
     return render(request, 'education/manage_content.html', {
         'contents': contents,
@@ -353,9 +353,9 @@ def manage_content(request):
 
 @user_passes_test(lambda u: u.is_staff)
 def delete_content(request, pk):
-    content = get_object_or_404(Content, pk=pk)
+    content = get_object_or_404(Note, pk=pk)
     content.delete()
-    messages.success(request, "Content deleted.")
+    messages.success(request, "Note deleted successfully.")
     return redirect('manage_content')
 
 def contact_us(request):
