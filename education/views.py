@@ -266,17 +266,20 @@ def update_admission_status(request, pk, status):
                       f"Password: {password}\n\n" \
                       f"Regards,\nIdeal Classes"
             
-            try:
-                send_mail(
-                    subject,
-                    message,
-                    settings.EMAIL_HOST_USER,
-                    [admission.email],
-                    fail_silently=False,
-                )
-                messages.success(request, f"Admission for {admission.full_name} has been Approved and email sent.")
-            except Exception as e:
-                messages.warning(request, f"Admission Approved but email failed: {str(e)}")
+            import threading
+            
+            def send_email_async(subj, msg, from_em, to_em):
+                try:
+                    send_mail(subj, msg, from_em, [to_em], fail_silently=False)
+                except Exception as e:
+                    print(f"Async email sending failed: {e}")
+            
+            thread = threading.Thread(
+                target=send_email_async,
+                args=(subject, message, settings.EMAIL_HOST_USER, admission.email)
+            )
+            thread.start()
+            messages.success(request, f"Admission for {admission.full_name} has been Approved successfully! (Notification email is being sent in the background.)")
         else:
             messages.success(request, f"Admission for {admission.full_name} has been {status}")
             
