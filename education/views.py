@@ -80,7 +80,14 @@ def firebase_messaging_sw(request):
 
 def home(request):
     categories = Category.objects.all().only('name')
-    top_students = TopStudent.objects.all().order_by('-created_at')
+    
+    try:
+        top_students = TopStudent.objects.all().order_by('-created_at')
+        # Force evaluation to catch any relation/database errors before rendering
+        list(top_students[:1])
+    except Exception as e:
+        top_students = None
+        
     context = {
         'categories': categories,
         'top_students': top_students
