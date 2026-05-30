@@ -409,13 +409,16 @@ def student_dashboard(request):
     email = request.session.get('student_email')
     admission = get_object_or_404(StudentAdmission, email=email)
     
-    # 1. Get subjects that match student's profile
-    # Filtering Logic: subject.course == student.course, subject.department == student.department, subject.year == student.year
+    # 1. Get subjects that match student's profile (Course and Department)
     subjects = Subject.objects.filter(
         category=admission.category,
-        branch=admission.branch,
-        year=admission.year
+        branch=admission.branch
     )
+    # Safely match specific year OR subjects that don't have a year assigned (global to department)
+    if admission.year:
+        subjects = subjects.filter(
+            models.Q(year=admission.year) | models.Q(year__isnull=True)
+        )
     
     # 2. Include manually assigned subjects (if any)
     assigned_subjects = admission.subjects.all()
