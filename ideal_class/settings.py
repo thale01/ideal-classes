@@ -100,7 +100,8 @@ DATABASES = {
 # Permanently prevent database locks/hangs from crashing the web server by setting a 5-second statement timeout on PostgreSQL
 if 'postgresql' in DATABASES['default'].get('ENGINE', ''):
     DATABASES['default']['OPTIONS'] = {
-        'options': '-c statement_timeout=5000'
+        'options': '-c statement_timeout=5000',
+        'prepare_threshold': None,
     }
     # Pooler-friendly settings (Supavisor / PgBouncer in Transaction Mode)
     DATABASES['default']['CONN_MAX_AGE'] = 0  # Disable persistent connections to let the pooler recycle them instantly
