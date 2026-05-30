@@ -225,3 +225,29 @@ class FCMToken(models.Model):
     def __str__(self):
         name = self.user.username if self.user else "Anonymous"
         return f"Token for {name} ({self.created_at.strftime('%Y-%m-%d')})"
+
+class TopStudent(models.Model):
+    name = models.CharField(max_length=200)
+    photo = models.ImageField(upload_to='top_students/', help_text="Upload student photo")
+    course = models.CharField(max_length=200, help_text="Course Name (e.g. Diploma, Degree, 11th)")
+    department = models.CharField(max_length=200, help_text="Department/Stream (e.g. Mechanical, Computer, Science)")
+    subject = models.CharField(max_length=200, help_text="Subject Name (e.g. Mathematics, Physics)")
+    score_obtained = models.PositiveIntegerField(help_text="Marks obtained by student")
+    total_marks = models.PositiveIntegerField(help_text="Total marks for the subject")
+    achievement = models.CharField(max_length=250, blank=True, null=True, help_text="Specific achievement or rank (e.g. Class Topper, Gold Medalist)")
+    academic_year = models.CharField(max_length=50, help_text="Academic Year (e.g. 2025-2026)")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Top Student"
+        verbose_name_plural = "Top Students"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.name} - {self.subject} ({self.percentage}%)"
+
+    @property
+    def percentage(self):
+        if self.total_marks > 0:
+            return round((self.score_obtained / self.total_marks) * 100, 2)
+        return 0

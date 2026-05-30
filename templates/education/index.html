@@ -225,6 +225,79 @@
             {% endfor %}
         </div>
     </section>
+    {% if top_students %}
+    <!-- Top Students Section -->
+    <section id="top-students" class="mt-5 pb-5 animate__animated animate__fadeIn">
+        <div class="d-flex align-items-center mb-5">
+            <h2 class="display-6 fw-bold mb-0 text-main">Top Performing Students</h2>
+            <div class="ms-4 h-25 bg-secondary-branded opacity-25 flex-grow-1" style="height: 2px !important; border-radius: 5px;"></div>
+        </div>
+
+        <div class="row g-4">
+            {% for student in top_students %}
+            <div class="col-md-6 col-lg-4 col-xl-3">
+                <div class="card card-branded border-0 h-100 shadow-sm overflow-hidden transition-hover">
+                    <!-- Photo Header -->
+                    <div class="position-relative" style="height: 240px; overflow: hidden; background: var(--border-color);">
+                        {% if student.photo %}
+                            <img src="{{ student.photo.url }}" class="w-100 h-100 object-fit-cover" alt="{{ student.name }}">
+                        {% else %}
+                            <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light text-muted">
+                                <i class="bi bi-person-fill display-3"></i>
+                            </div>
+                        {% endif %}
+                        <!-- Achievement Badge -->
+                        {% if student.achievement %}
+                            <div class="position-absolute top-0 end-0 m-3">
+                                <span class="badge bg-secondary-branded text-primary-branded px-3 py-2 rounded-pill fw-bold shadow-sm">
+                                    <i class="bi bi-trophy-fill me-1"></i> {{ student.achievement }}
+                                </span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Card Body -->
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="mb-3">
+                            <h5 class="fw-bold mb-1 text-main">{{ student.name }}</h5>
+                            <p class="small text-muted mb-0"><i class="bi bi-calendar3 me-1"></i> Academic Year: {{ student.academic_year }}</p>
+                        </div>
+                        
+                        <!-- Details -->
+                        <div class="d-flex flex-column gap-2 border-top border-bottom py-3 my-2 text-start">
+                            <div class="d-flex justify-content-between">
+                                <span class="small text-muted"><i class="bi bi-mortarboard me-1"></i> Course</span>
+                                <span class="small fw-bold text-main">{{ student.course }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="small text-muted"><i class="bi bi-diagram-3 me-1"></i> Department</span>
+                                <span class="small fw-bold text-main">{{ student.department }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="small text-muted"><i class="bi bi-book me-1"></i> Subject</span>
+                                <span class="small fw-bold text-main">{{ student.subject }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Score Display -->
+                        <div class="mt-auto pt-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="small text-muted d-block">Score Obtained</span>
+                                    <h4 class="fw-bold text-primary-branded mb-0">{{ student.score_obtained }}<span class="fs-6 text-muted fw-normal">/{{ student.total_marks }}</span></h4>
+                                </div>
+                                <div class="text-end">
+                                    <span class="small text-muted d-block">Percentage</span>
+                                    <span class="badge bg-success-soft text-success fs-5 fw-bold px-3 py-1 rounded-pill">{{ student.percentage }}%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
     {% endif %}
 
 

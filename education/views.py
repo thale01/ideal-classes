@@ -4,12 +4,12 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
-from .models import Category, Branch, Subject, Content, StudentAdmission, GlobalSetting, Year, ContactMessage, SavedContent, Note, Video
+from .models import Category, Branch, Subject, Content, StudentAdmission, GlobalSetting, Year, ContactMessage, SavedContent, Note, Video, TopStudent
 from .forms import AdmissionForm, ContentForm, CommonPasswordForm, ContactForm, NoteForm
 import json
 from django.http import JsonResponse, HttpResponse
 from django.conf import settings
-from .models import Category, Branch, Subject, Content, StudentAdmission, GlobalSetting, Year, ContactMessage, SavedContent, Note, Video, FCMToken
+from .models import Category, Branch, Subject, Content, StudentAdmission, GlobalSetting, Year, ContactMessage, SavedContent, Note, Video, FCMToken, TopStudent
 import firebase_admin
 from firebase_admin import messaging, credentials
 import os
@@ -80,7 +80,11 @@ def firebase_messaging_sw(request):
 
 def home(request):
     categories = Category.objects.all().only('name')
-    context = {'categories': categories}
+    top_students = TopStudent.objects.all().order_by('-created_at')
+    context = {
+        'categories': categories,
+        'top_students': top_students
+    }
     
     if request.user.is_staff:
         context['total_students'] = StudentAdmission.objects.filter(status='Approved').count()

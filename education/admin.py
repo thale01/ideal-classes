@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django import forms
-from .models import Category, Branch, Subject, Chapter, Content, Year, ContactMessage, StudentAdmission, Note, Video
+from .models import Category, Branch, Subject, Chapter, Content, Year, ContactMessage, StudentAdmission, Note, Video, TopStudent
 
 class ContentInline(admin.TabularInline):
     model = Content
@@ -120,4 +120,15 @@ class VideoAdmin(admin.ModelAdmin):
     list_filter = ('subject__category', 'subject__branch', 'subject')
     search_fields = ('title', 'subject__name', 'video_url')
     list_select_related = ('subject', 'subject__branch', 'subject__category', 'subject__year')
+
+@admin.register(TopStudent)
+class TopStudentAdmin(admin.ModelAdmin):
+    list_display = ('name', 'course', 'department', 'subject', 'score_obtained', 'total_marks', 'percentage_display', 'academic_year', 'created_at')
+    list_filter = ('course', 'department', 'academic_year')
+    search_fields = ('name', 'subject', 'achievement')
+    ordering = ('-created_at',)
+
+    def percentage_display(self, obj):
+        return f"{obj.percentage}%"
+    percentage_display.short_description = 'Percentage'
 
