@@ -97,6 +97,12 @@ DATABASES = {
     )
 }
 
+# Permanently prevent database locks/hangs from crashing the web server by setting a 5-second statement timeout on PostgreSQL
+if DATABASES['default'].get('ENGINE') == 'django.db.backends.postgresql':
+    DATABASES['default']['OPTIONS'] = {
+        'options': '-c statement_timeout=5000'
+    }
+
 
 
 # Password validation
