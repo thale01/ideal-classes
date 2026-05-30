@@ -99,10 +99,11 @@ DATABASES = {
 
 # Permanently prevent database locks/hangs from crashing the web server by setting a 5-second statement timeout on PostgreSQL
 if 'postgresql' in DATABASES['default'].get('ENGINE', ''):
-    DATABASES['default']['OPTIONS'] = {
-        'options': '-c statement_timeout=5000',
-        'prepare_threshold': None,
-    }
+    # Safely update OPTIONS to preserve parsed settings (e.g. SSL modes from dj-database-url)
+    if 'OPTIONS' not in DATABASES['default'] or not isinstance(DATABASES['default']['OPTIONS'], dict):
+        DATABASES['default']['OPTIONS'] = {}
+    DATABASES['default']['OPTIONS']['options'] = '-c statement_timeout=5000'
+    DATABASES['default']['OPTIONS']['prepare_threshold'] = None
     # Pooler-friendly settings (Supavisor / PgBouncer in Transaction Mode)
     DATABASES['default']['CONN_MAX_AGE'] = 0  # Disable persistent connections to let the pooler recycle them instantly
     DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = True  # Prevent deadlocks from server-side cursors

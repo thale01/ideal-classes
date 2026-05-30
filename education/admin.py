@@ -105,7 +105,7 @@ class ContactMessageAdmin(admin.ModelAdmin):
 @admin.register(Note)
 class NoteAdmin(admin.ModelAdmin):
     list_display = ('title', 'subject', 'drive_link', 'created_at')
-    list_filter = ('subject__category', 'subject__branch', 'subject')
+    list_filter = ('subject__category', 'subject__branch', ('subject', admin.RelatedOnlyFieldListFilter))
     search_fields = ('title', 'subject__name', 'drive_link')
     list_select_related = ('subject', 'subject__branch', 'subject__category', 'subject__year')
 
