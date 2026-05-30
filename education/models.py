@@ -189,6 +189,15 @@ class Note(models.Model):
     def __str__(self):
         return f"{self.title} - {self.subject.name}"
 
+    @property
+    def get_link(self):
+        link = self.drive_link.strip() if self.drive_link else ""
+        if not link:
+            return "#"
+        if not (link.startswith('http://') or link.startswith('https://')):
+            return f"https://{link}"
+        return link
+
 class Video(models.Model):
     title = models.CharField(max_length=200)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='videos')

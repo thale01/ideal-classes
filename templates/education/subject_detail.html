@@ -48,9 +48,15 @@
                                     <p class="small text-muted mb-0">Study Material</p>
                                 </div>
                             </div>
-                            <a href="{{ note.drive_link }}" target="_blank" class="btn btn-primary-branded btn-sm rounded-pill px-4">
-                                View / Download
-                            </a>
+                            {% if note.get_link != '#' %}
+                                <a href="{{ note.get_link }}" target="_blank" class="btn btn-primary-branded btn-sm rounded-pill px-4">
+                                    View / Download
+                                </a>
+                            {% else %}
+                                <button class="btn btn-outline-secondary btn-sm rounded-pill px-4" disabled>
+                                    No PDF Link
+                                </button>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

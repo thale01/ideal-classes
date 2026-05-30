@@ -57,8 +57,8 @@
                                     </div>
                                 </td>
                                 <td class="py-3 border-0">
-                                    {% if content.drive_link %}
-                                        <a href="{{ content.drive_link }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                    {% if content.get_link != '#' %}
+                                        <a href="{{ content.get_link }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
                                             <i class="bi bi-google me-1"></i> Open PDF
                                         </a>
                                     {% else %}
