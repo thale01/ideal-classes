@@ -102,6 +102,9 @@ if 'postgresql' in DATABASES['default'].get('ENGINE', ''):
     DATABASES['default']['OPTIONS'] = {
         'options': '-c statement_timeout=5000'
     }
+    # Pooler-friendly settings (Supavisor / PgBouncer in Transaction Mode)
+    DATABASES['default']['CONN_MAX_AGE'] = 0  # Disable persistent connections to let the pooler recycle them instantly
+    DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = True  # Prevent deadlocks from server-side cursors
 
 
 
