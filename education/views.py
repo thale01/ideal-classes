@@ -97,6 +97,37 @@ def home(request):
         context['total_students'] = StudentAdmission.objects.filter(status='Approved').count()
         context['pending_admissions'] = StudentAdmission.objects.filter(status='Pending').count()
         context['total_subjects'] = Subject.objects.count()
+    elif request.session.get('is_student'):
+        email = request.session.get('student_email')
+        admission = StudentAdmission.objects.filter(email=email).first()
+        if admission:
+            # 1. Get subjects that match student's profile (Course and Department)
+            subjects = Subject.objects.filter(
+                category=admission.category,
+                branch=admission.branch
+            )
+            # Safely match specific year OR subjects that don't have a year assigned (global to department)
+            if admission.year:
+                subjects = subjects.filter(
+                    models.Q(year=admission.year) | models.Q(year__isnull=True)
+                )
+            
+            # 2. Include manually assigned subjects (if any)
+            assigned_subjects = admission.subjects.all()
+            all_subjects = (subjects | assigned_subjects).distinct().order_by('name')
+            
+            # 3. Fetch Notes and Videos related to these subjects
+            notes = Note.objects.filter(subject__in=all_subjects).select_related('subject')
+            videos = Video.objects.filter(subject__in=all_subjects).select_related('subject')
+            
+            context.update({
+                'admission': admission,
+                'subjects': all_subjects,
+                'notes': notes,
+                'videos': videos,
+                'total_notes': notes.count(),
+                'total_videos': videos.count(),
+            })
         
     return render(request, 'education/index.html', context)
 
