@@ -392,9 +392,9 @@
             {% endif %}
         </div>
         <div class="p-4 mt-auto">
-            <div class="p-3 rounded-4" style="background: rgba(255,255,255,0.05);">
+            <div class="p-3 rounded-4" style="background: rgba(255,255,255,0.05); overflow: hidden;">
                 <p class="small mb-1 opacity-50">Authorized {% if request.session.is_student %}Student{% else %}Faculty{% endif %}</p>
-                <h6 class="mb-0 fw-bold text-secondary-branded">{{ user.username }}{{ request.session.student_email }}</h6>
+                <h6 class="mb-0 fw-bold text-secondary-branded text-break" style="word-break: break-all;">{{ user.username }}{{ request.session.student_email }}</h6>
             </div>
         </div>
     </nav>
