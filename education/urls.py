@@ -25,4 +25,6 @@ urlpatterns = [
     path('faculty/login/', views.faculty_login, name='faculty_login'),
     path('save-content/<int:pk>/', views.toggle_save_content, name='toggle_save_content'),
     path('my-saved-notes/', views.saved_notes_page, name='saved_notes'),
+    path('robots.txt', views.robots_txt, name='robots_txt'),
+    path('sitemap.xml', views.sitemap_xml, name='sitemap_xml'),
 ]

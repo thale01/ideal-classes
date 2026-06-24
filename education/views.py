@@ -516,3 +516,45 @@ def saved_notes_page(request):
         'saved_items': saved_items,
         'student': student
     })
+
+def robots_txt(request):
+    lines = [
+        "User-agent: *",
+        "Allow: /",
+        "Disallow: /admin/",
+        "Disallow: /accounts/",
+        "Disallow: /student/dashboard/",
+        "Disallow: /my-saved-notes/",
+        "Disallow: /search/",
+        "",
+        f"Sitemap: {request.scheme}://{request.get_host()}/sitemap.xml"
+    ]
+    return HttpResponse("\n".join(lines), content_type="text/plain")
+
+def sitemap_xml(request):
+    domain = f"{request.scheme}://{request.get_host()}"
+    
+    urls = [
+        {'loc': f"{domain}/", 'changefreq': 'daily', 'priority': '1.0'},
+        {'loc': f"{domain}/curriculum/", 'changefreq': 'weekly', 'priority': '0.8'},
+        {'loc': f"{domain}/admission/", 'changefreq': 'monthly', 'priority': '0.8'},
+        {'loc': f"{domain}/contact-us/", 'changefreq': 'monthly', 'priority': '0.7'},
+        {'loc': f"{domain}/login-selection/", 'changefreq': 'monthly', 'priority': '0.5'},
+        {'loc': f"{domain}/student/login/", 'changefreq': 'monthly', 'priority': '0.5'},
+        {'loc': f"{domain}/faculty/login/", 'changefreq': 'monthly', 'priority': '0.4'},
+        {'loc': f"{domain}/privacy-policy/", 'changefreq': 'yearly', 'priority': '0.3'},
+        {'loc': f"{domain}/terms-of-use/", 'changefreq': 'yearly', 'priority': '0.3'},
+    ]
+    
+    xml_content = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml_content += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    for url in urls:
+        xml_content += '  <url>\n'
+        xml_content += f"    <loc>{url['loc']}</loc>\n"
+        xml_content += f"    <changefreq>{url['changefreq']}</changefreq>\n"
+        xml_content += f"    <priority>{url['priority']}</priority>\n"
+        xml_content += '  </url>\n'
+    xml_content += '</urlset>'
+    
+    return HttpResponse(xml_content, content_type="application/xml")
+

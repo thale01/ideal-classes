@@ -1,5 +1,17 @@
 {% extends 'base.html' %}
 
+{% block title %}Ideal Classes | Best Engineering Diploma & Science Coaching in Pen{% endblock %}
+
+{% block meta_description %}Ideal Classes in Pen, Maharashtra offers premier coaching for 11th, 12th Science, Diploma Engineering, and Degree Engineering. Enhance your learning with premium notes and video lectures by Kalpesh Patil.{% endblock %}
+
+{% block meta_keywords %}coaching classes in Pen, best coaching classes in Pen, engineering diploma classes Pen, 12th science coaching Pen, Ideal Classes Pen, Kalpesh Patil Pen, engineering notes Pen, diploma engineering coaching, Ideal Class Ramwadi{% endblock %}
+
+{% block og_title %}Ideal Classes | Best Engineering Diploma & Science Coaching in Pen{% endblock %}
+{% block og_description %}Ideal Classes in Pen, Maharashtra offers premier coaching for 11th, 12th Science, Diploma Engineering, and Degree Engineering. Enhance your learning with premium notes and video lectures by Kalpesh Patil.{% endblock %}
+
+{% block twitter_title %}Ideal Classes | Best Engineering & Science Coaching in Pen{% endblock %}
+{% block twitter_description %}Ideal Classes in Pen offers premier coaching for 11th, 12th Science, Diploma & Degree Engineering. Learn smarter with expert resources.{% endblock %}
+
 {% block content %}
 
 {% if not user.is_authenticated and not request.session.is_student %}
@@ -10,7 +22,8 @@
     <div class="row align-items-center mb-5 py-5 text-lg-start">
         <div class="col-lg-7">
             <h1 class="display-1 fw-bold mb-4 animate__animated animate__fadeInDown lh-sm">
-                Learn <span class="text-secondary-branded">Smarter,</span><br>Faster.
+                Ideal Classes <span class="text-secondary-branded">Pen</span><br>
+                <span class="fs-2 fw-medium text-muted">Learn Smarter, Faster.</span>
             </h1>
             <p class="lead fs-4 opacity-75 mb-5 pe-lg-5">
                 Master your curriculum with our branded learning resources. Expertly curated for 12th, Diploma, and
@@ -197,7 +210,7 @@
                     <!-- Photo Header -->
                     <div class="position-relative" style="height: 240px; overflow: hidden; background: var(--border-color);">
                         {% if student.photo %}
-                            <img src="{{ student.photo.url }}" class="w-100 h-100 object-fit-cover" alt="{{ student.name }}">
+                            <img src="{{ student.photo.url }}" class="w-100 h-100 object-fit-cover" alt="{{ student.name }} - Top Performing Student of Ideal Classes Pen">
                         {% else %}
                             <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light text-muted">
                                 <i class="bi bi-person-fill display-3"></i>
