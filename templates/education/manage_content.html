@@ -5,8 +5,8 @@
 <div class="animate__animated animate__fadeIn">
     <div class="d-flex justify-content-between align-items-center mb-5">
         <div>
-            <h1 class="display-5 fw-bold mb-1">Manage Study Notes</h1>
-            <p class="opacity-75">Upload and manage Google Drive PDF study notes for subjects.</p>
+            <h1 class="display-5 fw-bold mb-1">Manage Content</h1>
+            <p class="opacity-75">Upload and manage PDF study notes and YouTube video lectures for subjects.</p>
         </div>
         <a href="{% url 'home' %}" class="btn btn-outline-primary-branded px-4 shadow-sm">
             <i class="bi bi-arrow-left me-2"></i> Back to Dashboard
@@ -16,75 +16,229 @@
     <div class="row g-5">
         <!-- Upload Form -->
         <div class="col-lg-4">
-            <div class="card card-branded border-0 p-4 sticky-top" style="top: 100px;">
-                <h4 class="fw-bold mb-4">Add Study Note</h4>
-                <form method="POST">
-                    {% csrf_token %}
-                    {{ form|crispy }}
-                    <button type="submit" class="btn btn-primary-branded w-100 py-3 mt-3 shadow-sm">
-                        <i class="bi bi-plus-circle me-2"></i> Add Study Note
-                    </button>
-                </form>
+            <div class="card card-branded border-0 p-4 sticky-top" style="top: 100px; z-index: 10;">
+                <!-- Tab Pills for note vs video selection -->
+                <ul class="nav nav-pills mb-4 d-flex justify-content-center" id="formTabs" role="tablist" style="background: rgba(0,0,0,0.05); padding: 5px; border-radius: 12px;">
+                    <li class="nav-item flex-fill" role="presentation">
+                        <button class="nav-link w-100 rounded-3 fw-bold {% if active_tab == 'note' %}active{% endif %}" id="note-form-tab" data-bs-toggle="pill" data-bs-target="#note-form-pane" type="button" role="tab" aria-selected="{% if active_tab == 'note' %}true{% else %}false{% endif %}">
+                            <i class="bi bi-file-earmark-pdf me-2"></i>Note
+                        </button>
+                    </li>
+                    <li class="nav-item flex-fill" role="presentation">
+                        <button class="nav-link w-100 rounded-3 fw-bold {% if active_tab == 'video' %}active{% endif %}" id="video-form-tab" data-bs-toggle="pill" data-bs-target="#video-form-pane" type="button" role="tab" aria-selected="{% if active_tab == 'video' %}true{% else %}false{% endif %}">
+                            <i class="bi bi-play-btn me-2"></i>Video
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="formTabsContent">
+                    <!-- Note Form Pane -->
+                    <div class="tab-pane fade {% if active_tab == 'note' %}show active{% endif %}" id="note-form-pane" role="tabpanel">
+                        <h5 class="fw-bold mb-3 text-main">Add Study Note</h5>
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="add_note">
+                            {{ note_form|crispy }}
+                            <button type="submit" class="btn btn-primary-branded w-100 py-3 mt-3 shadow-sm">
+                                <i class="bi bi-plus-circle me-2"></i> Add Study Note
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Video Form Pane -->
+                    <div class="tab-pane fade {% if active_tab == 'video' %}show active{% endif %}" id="video-form-pane" role="tabpanel">
+                        <h5 class="fw-bold mb-3 text-main">Add Video Lecture</h5>
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="add_video">
+                            {{ video_form|crispy }}
+                            <button type="submit" class="btn btn-secondary-branded w-100 py-3 mt-3 shadow-sm">
+                                <i class="bi bi-plus-circle me-2"></i> Add Video Lecture
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Content List -->
         <div class="col-lg-8">
             <div class="card card-branded border-0 p-4 shadow-sm h-100">
-                <h4 class="fw-bold mb-4">Existing Study Notes</h4>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="bg-light bg-opacity-10">
-                            <tr>
-                                <th class="py-3 px-4 border-0">Note Title</th>
-                                <th class="py-3 border-0">Subject Details</th>
-                                <th class="py-3 border-0">Drive Link</th>
-                                <th class="py-3 border-0">Date Added</th>
-                                <th class="py-3 px-4 border-0 text-end">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for content in contents %}
-                            <tr>
-                                <td class="py-3 px-4 border-0 fw-bold text-primary-branded">{{ content.title }}</td>
-                                <td class="py-3 border-0">
-                                    <div class="d-flex flex-column">
-                                        <span class="fw-bold small">{{ content.subject.name }}</span>
-                                        <small class="text-muted">
-                                            {{ content.subject.category.name }} | {{ content.subject.branch.name }}
-                                            {% if content.subject.year %} | {{ content.subject.year.name }}{% endif %}
-                                        </small>
-                                    </div>
-                                </td>
-                                <td class="py-3 border-0">
-                                    {% if content.get_link != '#' %}
-                                        <a href="{{ content.get_link }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                            <i class="bi bi-google me-1"></i> Open PDF
-                                        </a>
-                                    {% else %}
-                                        <span class="text-muted small">No Link</span>
-                                    {% endif %}
-                                </td>
-                                <td class="py-3 border-0 small opacity-75">{{ content.created_at|date:"M d, Y" }}</td>
-                                <td class="py-3 px-4 border-0 text-end">
-                                    <a href="{% url 'delete_content' content.pk %}" class="btn btn-sm btn-outline-danger border-0 p-2" onclick="return confirm('Delete this study note?')">
-                                        <i class="bi bi-trash fs-5"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="5" class="text-center py-5 opacity-25">
-                                    <i class="bi bi-file-pdf display-4 mb-3 d-block"></i>
-                                    No study notes added yet. Use the form to start adding notes!
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                    <h4 class="fw-bold mb-0 text-main">Existing Materials</h4>
+                    <!-- Tabs to toggle lists -->
+                    <ul class="nav nav-tabs-branded" id="listTabs" role="tablist" style="border-bottom: none; gap: 1rem;">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active py-2 border-0 bg-transparent text-nowrap" id="notes-list-tab" data-bs-toggle="tab" data-bs-target="#notes-list-pane" type="button" role="tab" aria-selected="true">
+                                <i class="bi bi-file-earmark-pdf me-2"></i>Notes ({{ notes.count }})
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link py-2 border-0 bg-transparent text-nowrap" id="videos-list-tab" data-bs-toggle="tab" data-bs-target="#videos-list-pane" type="button" role="tab" aria-selected="false">
+                                <i class="bi bi-play-btn me-2"></i>Videos ({{ videos.count }})
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="tab-content" id="listTabsContent">
+                    <!-- Notes Tab -->
+                    <div class="tab-pane fade show active" id="notes-list-pane" role="tabpanel">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="bg-light bg-opacity-10">
+                                    <tr>
+                                        <th class="py-3 px-4 border-0">Note Title</th>
+                                        <th class="py-3 border-0">Subject Details</th>
+                                        <th class="py-3 border-0">Drive Link</th>
+                                        <th class="py-3 border-0">Date Added</th>
+                                        <th class="py-3 px-4 border-0 text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for content in notes %}
+                                    <tr>
+                                        <td class="py-3 px-4 border-0 fw-bold text-primary-branded">{{ content.title }}</td>
+                                        <td class="py-3 border-0">
+                                            <div class="d-flex flex-column">
+                                                <span class="fw-bold small">{{ content.subject.name }}</span>
+                                                <small class="text-muted">
+                                                    {{ content.subject.category.name }} | {{ content.subject.branch.name }}
+                                                    {% if content.subject.year %} | {{ content.subject.year.name }}{% endif %}
+                                                </small>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 border-0">
+                                            {% if content.get_link != '#' %}
+                                                <a href="{{ content.get_link }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                                    <i class="bi bi-google me-1"></i> Open PDF
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted small">No Link</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="py-3 border-0 small opacity-75">{{ content.created_at|date:"M d, Y" }}</td>
+                                        <td class="py-3 px-4 border-0 text-end">
+                                            <a href="{% url 'delete_content' content.pk %}" class="btn btn-sm btn-outline-danger border-0 p-2" onclick="return confirm('Delete this study note?')">
+                                                <i class="bi bi-trash fs-5"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-5 opacity-25">
+                                            <i class="bi bi-file-pdf display-4 mb-3 d-block"></i>
+                                            No study notes added yet. Use the form to start adding notes!
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Videos Tab -->
+                    <div class="tab-pane fade" id="videos-list-pane" role="tabpanel">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="bg-light bg-opacity-10">
+                                    <tr>
+                                        <th class="py-3 px-4 border-0">Video Title</th>
+                                        <th class="py-3 border-0">Subject Details</th>
+                                        <th class="py-3 border-0">Video URL</th>
+                                        <th class="py-3 border-0">Date Added</th>
+                                        <th class="py-3 px-4 border-0 text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for video in videos %}
+                                    <tr>
+                                        <td class="py-3 px-4 border-0 fw-bold text-primary-branded">{{ video.title }}</td>
+                                        <td class="py-3 border-0">
+                                            <div class="d-flex flex-column">
+                                                <span class="fw-bold small">{{ video.subject.name }}</span>
+                                                <small class="text-muted">
+                                                    {{ video.subject.category.name }} | {{ video.subject.branch.name }}
+                                                    {% if video.subject.year %} | {{ video.subject.year.name }}{% endif %}
+                                                </small>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 border-0">
+                                            {% if video.video_url %}
+                                                <a href="{{ video.video_url }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                                    <i class="bi bi-youtube me-1"></i> Watch Video
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted small">No Link</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="py-3 border-0 small opacity-75">{{ video.created_at|date:"M d, Y" }}</td>
+                                        <td class="py-3 px-4 border-0 text-end">
+                                            <a href="{% url 'delete_video' video.pk %}" class="btn btn-sm btn-outline-danger border-0 p-2" onclick="return confirm('Delete this video lecture?')">
+                                                <i class="bi bi-trash fs-5"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-5 opacity-25">
+                                            <i class="bi bi-play-btn display-4 mb-3 d-block"></i>
+                                            No video lectures added yet. Use the form to start adding videos!
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    /* Styling tab-pills for form select */
+    .nav-pills .nav-link {
+        color: var(--text-main);
+        background: none;
+        transition: all 0.3s ease;
+    }
+    .nav-pills .nav-link:hover {
+        color: var(--secondary-color);
+    }
+    .nav-pills .nav-link.active {
+        background-color: var(--primary-color) !important;
+        color: white !important;
+    }
+    [data-bs-theme="dark"] .nav-pills .nav-link.active {
+        background-color: var(--secondary-color) !important;
+        color: var(--primary-color) !important;
+    }
+
+    /* Branded navigation tab styling for material list */
+    .nav-tabs-branded {
+        border-bottom: 2px solid var(--border-color);
+        display: flex;
+    }
+    .nav-tabs-branded .nav-link {
+        color: var(--text-muted);
+        font-weight: 600;
+        position: relative;
+        transition: all 0.3s;
+    }
+    .nav-tabs-branded .nav-link:hover { color: var(--text-main); }
+    .nav-tabs-branded .nav-link.active {
+        color: var(--secondary-color);
+    }
+    .nav-tabs-branded .nav-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--secondary-color);
+    }
+</style>
 {% endblock %}

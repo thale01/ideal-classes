@@ -1,5 +1,5 @@
 from django import forms
-from .models import StudentAdmission, Content, Branch, Chapter, ContactMessage, Note, Subject
+from .models import StudentAdmission, Content, Branch, Chapter, ContactMessage, Note, Subject, Video
 
 class AdmissionForm(forms.ModelForm):
     class Meta:
@@ -32,6 +32,21 @@ class NoteForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['subject'].queryset = Subject.objects.select_related('category', 'branch', 'year').order_by('name')
+
+class VideoForm(forms.ModelForm):
+    class Meta:
+        model = Video
+        fields = ['subject', 'title', 'video_url']
+        widgets = {
+            'subject': forms.Select(attrs={'class': 'form-select'}),
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Video Title (e.g. Intro to Calculus)'}),
+            'video_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'YouTube Video URL'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['subject'].queryset = Subject.objects.select_related('category', 'branch', 'year').order_by('name')
+
 
 class ContentForm(forms.ModelForm):
     class Meta:

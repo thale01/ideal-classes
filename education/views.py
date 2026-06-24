@@ -377,23 +377,37 @@ def admin_admissions(request):
 
 @user_passes_test(lambda u: u.is_staff)
 def manage_content(request):
-    # Fetch only latest 100 notes and select related for performance
-    contents = Note.objects.select_related('subject', 'subject__category', 'subject__branch', 'subject__year').all().order_by('-created_at')[:100]
+    notes = Note.objects.select_related('subject', 'subject__category', 'subject__branch', 'subject__year').all().order_by('-created_at')[:100]
+    videos = Video.objects.select_related('subject', 'subject__category', 'subject__branch', 'subject__year').all().order_by('-created_at')[:100]
+    
+    from .forms import NoteForm, VideoForm
+    note_form = NoteForm()
+    video_form = VideoForm()
+    active_tab = 'note'
     
     if request.method == 'POST':
-        from .forms import NoteForm
-        form = NoteForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Study note added successfully!")
-            return redirect('manage_content')
-    else:
-        from .forms import NoteForm
-        form = NoteForm()
-        
+        action = request.POST.get('action')
+        if action == 'add_note':
+            note_form = NoteForm(request.POST)
+            if note_form.is_valid():
+                note_form.save()
+                messages.success(request, "Study note added successfully!")
+                return redirect('manage_content')
+            active_tab = 'note'
+        elif action == 'add_video':
+            video_form = VideoForm(request.POST)
+            if video_form.is_valid():
+                video_form.save()
+                messages.success(request, "Video lecture added successfully!")
+                return redirect('manage_content')
+            active_tab = 'video'
+            
     return render(request, 'education/manage_content.html', {
-        'contents': contents,
-        'form': form
+        'notes': notes,
+        'videos': videos,
+        'note_form': note_form,
+        'video_form': video_form,
+        'active_tab': active_tab,
     })
 
 @user_passes_test(lambda u: u.is_staff)
@@ -402,6 +416,14 @@ def delete_content(request, pk):
     content.delete()
     messages.success(request, "Note deleted successfully.")
     return redirect('manage_content')
+
+@user_passes_test(lambda u: u.is_staff)
+def delete_video(request, pk):
+    video = get_object_or_404(Video, pk=pk)
+    video.delete()
+    messages.success(request, "Video lecture deleted successfully.")
+    return redirect('manage_content')
+
 
 def contact_us(request):
     if request.method == 'POST':

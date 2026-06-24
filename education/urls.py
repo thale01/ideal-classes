@@ -5,6 +5,7 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('admin-dashboard/manage-content/', views.manage_content, name='manage_content'),
     path('admin-dashboard/delete-content/<int:pk>/', views.delete_content, name='delete_content'),
+    path('admin-dashboard/delete-video/<int:pk>/', views.delete_video, name='delete_video'),
     path('category/<int:pk>/', views.category_branches, name='category_branches'),
     path('category/<int:category_pk>/year/<int:year_pk>/', views.year_subjects, name='year_subjects'),
     path('category/<int:category_pk>/branch/<int:branch_pk>/', views.branch_subjects, name='branch_subjects'),
