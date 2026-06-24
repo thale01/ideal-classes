@@ -38,6 +38,16 @@ if RENDER_EXTERNAL_HOSTNAME:
     if f'https://{RENDER_EXTERNAL_HOSTNAME}' not in CSRF_TRUSTED_ORIGINS:
         CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_EXTERNAL_HOSTNAME}')
 
+# Security & Cookie settings for Reverse Proxy (Render) SSL/HTTPS compatibility (especially Safari/iOS/WhatsApp)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+
+
 
 
 
