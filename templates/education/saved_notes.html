@@ -23,7 +23,11 @@
                 <div class="p-4 border-bottom bg-light bg-opacity-10 d-flex justify-content-between align-items-center">
                     <div>
                         <span class="badge bg-secondary-branded text-primary rounded-pill mb-2 px-3 py-2 small fw-bold">{{ item.content.content_type }}</span>
+                        {% if item.content.chapter and item.content.chapter.subject %}
                         <h6 class="text-muted small mb-0">{{ item.content.chapter.subject.name }}</h6>
+                        {% else %}
+                        <h6 class="text-muted small mb-0">General Resource</h6>
+                        {% endif %}
                     </div>
                     <a href="{% url 'toggle_save_content' item.content.pk %}" class="text-danger" title="Remove from saved">
                         <i class="bi bi-trash fs-5"></i>
@@ -34,11 +38,17 @@
                     <p class="small text-muted flex-grow-1">{{ item.content.description|default:"No description available."|truncatechars:120 }}</p>
                     
                     <div class="mt-4 pt-3 border-top d-flex gap-2">
+                        {% if item.content.chapter and item.content.chapter.subject %}
                         <a href="{% url 'subject_detail' item.content.chapter.subject.pk %}" class="btn btn-outline-primary btn-sm flex-grow-1 rounded-pill d-flex align-items-center justify-content-center">View Subject</a>
+                        {% endif %}
                         {% if item.content.content_type == 'Notes' and (item.content.file or item.content.file_url) %}
-                            <a href="{{ item.content.get_file_link }}" target="_blank" class="btn btn-primary-branded btn-sm px-4 rounded-pill d-flex align-items-center justify-content-center">Open File</a>
+                            <a href="{{ item.content.get_file_link }}" target="_blank" class="btn btn-primary-branded btn-sm px-4 rounded-pill d-flex align-items-center justify-content-center {% if not item.content.chapter or not item.content.chapter.subject %}flex-grow-1{% endif %}">Open File</a>
                         {% elif item.content.content_type == 'Video' %}
+                            {% if item.content.chapter and item.content.chapter.subject %}
                             <a href="{% url 'subject_detail' item.content.chapter.subject.pk %}" class="btn btn-secondary-branded btn-sm px-4 rounded-pill d-flex align-items-center justify-content-center">Watch Video</a>
+                            {% elif item.content.video_url %}
+                            <a href="{{ item.content.video_url }}" target="_blank" class="btn btn-secondary-branded btn-sm px-4 rounded-pill d-flex align-items-center justify-content-center flex-grow-1">Watch Video</a>
+                            {% endif %}
                         {% endif %}
                     </div>
                 </div>

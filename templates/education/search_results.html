@@ -57,8 +57,19 @@
                         <h4 class="fw-bold mb-0 h3">{{ content.title }}</h4>
                         <span class="badge bg-light rounded-pill px-3 py-2">{{ content.content_type }}</span>
                     </div>
-                    <p class="mb-4">Core material for <span class="text-secondary-branded fw-bold">{{ content.subject.name }}</span></p>
-                    <a href="{% url 'subject_detail' content.subject.pk %}" class="btn btn-secondary-branded w-100 py-3 mt-auto">Access Study Material</a>
+                    {% if content.chapter and content.chapter.subject %}
+                    <p class="mb-4">Core material for <span class="text-secondary-branded fw-bold">{{ content.chapter.subject.name }}</span></p>
+                    <a href="{% url 'subject_detail' content.chapter.subject.pk %}" class="btn btn-secondary-branded w-100 py-3 mt-auto">Access Study Material</a>
+                    {% else %}
+                    <p class="mb-4">General study material</p>
+                        {% if content.content_type == 'Notes' and (content.file or content.file_url) %}
+                        <a href="{{ content.get_file_link }}" target="_blank" class="btn btn-primary-branded w-100 py-3 mt-auto">Open File</a>
+                        {% elif content.content_type == 'Video' and content.video_url %}
+                        <a href="{{ content.video_url }}" target="_blank" class="btn btn-secondary-branded w-100 py-3 mt-auto">Watch Video</a>
+                        {% else %}
+                        <button class="btn btn-outline-secondary w-100 py-3 mt-auto" disabled>Access Study Material</button>
+                        {% endif %}
+                    {% endif %}
                 </div>
             </div>
 
