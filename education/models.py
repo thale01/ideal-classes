@@ -116,7 +116,20 @@ class Content(models.Model):
     @property
     def get_file_link(self):
         if self.file_url:
-            return self.file_url
+            link = self.file_url.strip()
+            # Convert Google Drive link to preview link for direct PDF viewing
+            if 'drive.google.com' in link:
+                if '/file/d/' in link:
+                    parts = link.split('/file/d/')
+                    if len(parts) > 1:
+                        file_id = parts[1].split('/')[0]
+                        return f"https://drive.google.com/file/d/{file_id}/preview"
+                elif 'open?id=' in link:
+                    parts = link.split('open?id=')
+                    if len(parts) > 1:
+                        file_id = parts[1].split('&')[0]
+                        return f"https://drive.google.com/file/d/{file_id}/preview"
+            return link
         if self.file:
             return self.file.url
         return "#"
@@ -195,7 +208,21 @@ class Note(models.Model):
         if not link:
             return "#"
         if not (link.startswith('http://') or link.startswith('https://')):
-            return f"https://{link}"
+            link = f"https://{link}"
+        
+        # Convert Google Drive link to preview link for direct PDF viewing
+        if 'drive.google.com' in link:
+            if '/file/d/' in link:
+                parts = link.split('/file/d/')
+                if len(parts) > 1:
+                    file_id = parts[1].split('/')[0]
+                    return f"https://drive.google.com/file/d/{file_id}/preview"
+            elif 'open?id=' in link:
+                parts = link.split('open?id=')
+                if len(parts) > 1:
+                    file_id = parts[1].split('&')[0]
+                    return f"https://drive.google.com/file/d/{file_id}/preview"
+                    
         return link
 
 class Video(models.Model):
