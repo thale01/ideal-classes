@@ -175,6 +175,11 @@ class StudentAdmission(models.Model):
         ('Approved', 'Approved'),
         ('Rejected', 'Rejected'),
     )
+    ACCOUNT_STATUS_CHOICES = (
+        ('Active', 'Active'),
+        ('Inactive', 'Inactive'),
+        ('Graduated', 'Graduated'),
+    )
     full_name = models.CharField(max_length=200)
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=15)
@@ -183,6 +188,7 @@ class StudentAdmission(models.Model):
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='admissions')
     subjects = models.ManyToManyField(Subject, blank=True, related_name='students')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    account_status = models.CharField(max_length=20, choices=ACCOUNT_STATUS_CHOICES, default='Active')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

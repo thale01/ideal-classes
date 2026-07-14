@@ -7,12 +7,53 @@ from django.contrib.auth.hashers import make_password, check_password
 from .models import Category, Branch, Subject, Content, StudentAdmission, GlobalSetting, Year, ContactMessage, SavedContent, Note, Video, TopStudent
 from .forms import AdmissionForm, ContentForm, CommonPasswordForm, ContactForm, NoteForm
 import json
+import os
 from django.http import JsonResponse, HttpResponse
 from django.conf import settings
 from .models import Category, Branch, Subject, Content, StudentAdmission, GlobalSetting, Year, ContactMessage, SavedContent, Note, Video, FCMToken, TopStudent
 import firebase_admin
 from firebase_admin import messaging, credentials
-import os
+from functools import wraps
+
+def active_student_required(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if request.user.is_authenticated and request.user.is_staff:
+            return view_func(request, *args, **kwargs)
+            
+        if not request.session.get('is_student'):
+            return redirect('student_login')
+            
+        student_id = request.session.get('student_id')
+        student = StudentAdmission.objects.filter(pk=student_id).first()
+        
+        if not student or student.status != 'Approved':
+            if 'student_id' in request.session:
+                del request.session['student_id']
+            if 'is_student' in request.session:
+                del request.session['is_student']
+            return redirect('student_login')
+            
+        if student.account_status == 'Inactive':
+            if 'student_id' in request.session:
+                del request.session['student_id']
+            if 'is_student' in request.session:
+                del request.session['is_student']
+            messages.error(request, "Your account is currently inactive. Please contact the administrator.")
+            return redirect('student_login')
+            
+        if student.account_status == 'Graduated':
+            if 'student_id' in request.session:
+                del request.session['student_id']
+            if 'is_student' in request.session:
+                del request.session['is_student']
+            messages.info(request, "Your course has been completed. Please contact the administrator if you believe this is incorrect.")
+            return redirect('student_login')
+            
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+
 
 # Initialize Firebase (only once)
 if not firebase_admin._apps:
@@ -94,13 +135,27 @@ def home(request):
     }
     
     if request.user.is_staff:
-        context['total_students'] = StudentAdmission.objects.filter(status='Approved').count()
+        context['total_students'] = StudentAdmission.objects.filter(status='Approved', account_status='Active').count()
         context['pending_admissions'] = StudentAdmission.objects.filter(status='Pending').count()
         context['total_subjects'] = Subject.objects.count()
     elif request.session.get('is_student'):
         email = request.session.get('student_email')
         admission = StudentAdmission.objects.filter(email=email).first()
         if admission:
+            if admission.account_status == 'Inactive':
+                if 'student_id' in request.session:
+                    del request.session['student_id']
+                if 'is_student' in request.session:
+                    del request.session['is_student']
+                messages.error(request, "Your account is currently inactive. Please contact the administrator.")
+                return redirect('student_login')
+            elif admission.account_status == 'Graduated':
+                if 'student_id' in request.session:
+                    del request.session['student_id']
+                if 'is_student' in request.session:
+                    del request.session['is_student']
+                messages.info(request, "Your course has been completed. Please contact the administrator if you believe this is incorrect.")
+                return redirect('student_login')
             # 1. Get subjects that match student's profile (Course and Department)
             subjects = Subject.objects.filter(
                 category=admission.category,
@@ -141,9 +196,8 @@ def home(request):
     return render(request, 'education/index.html', context)
 
 
+@active_student_required
 def category_branches(request, pk):
-    if not (request.user.is_authenticated or request.session.get('is_student')):
-        return redirect('login_selection')
     category = get_object_or_404(Category, pk=pk)
     
     # Check if category has years (like Degree/Diploma)
@@ -155,9 +209,8 @@ def category_branches(request, pk):
     branches = Branch.objects.filter(subjects__category=category).distinct()
     return render(request, 'education/category_branches.html', {'category': category, 'branches': branches})
 
+@active_student_required
 def year_subjects(request, category_pk, year_pk):
-    if not (request.user.is_authenticated or request.session.get('is_student')):
-        return redirect('login_selection')
         
     category = get_object_or_404(Category, pk=category_pk)
     year = get_object_or_404(Year, pk=year_pk)
@@ -180,9 +233,8 @@ def year_subjects(request, category_pk, year_pk):
         'selected_branch_id': int(selected_branch_id) if selected_branch_id else None
     })
 
+@active_student_required
 def branch_subjects(request, category_pk, branch_pk):
-    if not (request.user.is_authenticated or request.session.get('is_student')):
-        return redirect('login_selection')
     category = get_object_or_404(Category, pk=category_pk)
     branch = get_object_or_404(Branch, pk=branch_pk)
     subjects = Subject.objects.filter(category=category, branch=branch)
@@ -192,9 +244,8 @@ def branch_subjects(request, category_pk, branch_pk):
         'subjects': subjects
     })
 
+@active_student_required
 def subject_detail(request, pk):
-    if not (request.user.is_authenticated or request.session.get('is_student')):
-        return redirect('login_selection')
         
     subject = get_object_or_404(
         Subject.objects.prefetch_related('chapters__contents'), 
@@ -250,9 +301,8 @@ def subject_detail(request, pk):
         'chapters_data': chapters_data
     })
 
+@active_student_required
 def search(request):
-    if not (request.user.is_authenticated or request.session.get('is_student')):
-        return redirect('login_selection')
     query = request.GET.get('q')
     subjects = Subject.objects.none()
     contents = Content.objects.none()
@@ -310,6 +360,14 @@ def student_login(request):
             common_pwd_obj = GlobalSetting.objects.filter(key='student_common_password').first()
             if common_pwd_obj:
                 if check_password(password, common_pwd_obj.value):
+                    # Check lifecycle status first
+                    if admission.account_status == 'Inactive':
+                        messages.error(request, "Your account is currently inactive. Please contact the administrator.")
+                        return redirect('student_login')
+                    elif admission.account_status == 'Graduated':
+                        messages.info(request, "Your course has been completed. Please contact the administrator if you believe this is incorrect.")
+                        return redirect('student_login')
+
                     # Login Success
                     request.session['student_id'] = admission.id
                     request.session['student_email'] = admission.email
@@ -516,9 +574,8 @@ def faculty_login(request):
             
     return render(request, 'education/faculty_login.html')
 
+@active_student_required
 def student_dashboard(request):
-    if not request.session.get('is_student'):
-        return redirect('student_login')
     
     # Fetch student info
     email = request.session.get('student_email')
@@ -561,12 +618,12 @@ def student_dashboard(request):
         'watched_video_ids': watched_video_ids
     })
 
+@active_student_required
 def content_view(request, class_name):
     return render(request, 'education/content.html', {'class_name': class_name})
 
+@active_student_required
 def toggle_save_content(request, pk):
-    if not request.session.get('is_student'):
-        return redirect('login_selection')
     
     student_id = request.session.get('student_id')
     student = get_object_or_404(StudentAdmission, pk=student_id)
@@ -583,9 +640,8 @@ def toggle_save_content(request, pk):
     
     return redirect(request.META.get('HTTP_REFERER', 'home'))
 
+@active_student_required
 def toggle_watch_content(request, pk):
-    if not request.session.get('is_student'):
-        return redirect('login_selection')
     
     student_id = request.session.get('student_id')
     student = get_object_or_404(StudentAdmission, pk=student_id)
@@ -613,9 +669,8 @@ def toggle_watch_content(request, pk):
     messages.success(request, message)
     return redirect(request.META.get('HTTP_REFERER', 'home'))
 
+@active_student_required
 def toggle_watch_video(request, pk):
-    if not request.session.get('is_student'):
-        return redirect('login_selection')
         
     student_id = request.session.get('student_id')
     student = get_object_or_404(StudentAdmission, pk=student_id)
@@ -643,9 +698,8 @@ def toggle_watch_video(request, pk):
     messages.success(request, message)
     return redirect(request.META.get('HTTP_REFERER', 'home'))
 
+@active_student_required
 def saved_notes_page(request):
-    if not request.session.get('is_student'):
-        return redirect('login_selection')
     
     student_id = request.session.get('student_id')
     student = get_object_or_404(StudentAdmission, pk=student_id)

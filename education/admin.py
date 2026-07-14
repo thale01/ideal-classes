@@ -73,12 +73,28 @@ class StudentAdmissionAdminForm(forms.ModelForm):
 @admin.register(StudentAdmission)
 class StudentAdmissionAdmin(admin.ModelAdmin):
     form = StudentAdmissionAdminForm
-    list_display = ('full_name', 'email', 'category', 'branch', 'status', 'created_at')
-    list_filter = ('status', 'category', 'branch', 'created_at')
+    list_display = ('full_name', 'category', 'branch', 'year', 'account_status', 'status', 'created_at')
+    list_filter = ('account_status', 'status', 'category', 'branch', 'created_at')
     search_fields = ('full_name', 'email', 'phone')
     readonly_fields = ('created_at',)
     ordering = ('-created_at',)
     list_select_related = ('category', 'branch', 'year')
+    actions = ['mark_graduated', 'mark_inactive', 'mark_active']
+
+    @admin.action(description="Mark selected as Graduated")
+    def mark_graduated(self, request, queryset):
+        updated = queryset.update(account_status='Graduated')
+        self.message_user(request, f"Successfully marked {updated} students as Graduated.")
+
+    @admin.action(description="Mark selected as Inactive")
+    def mark_inactive(self, request, queryset):
+        updated = queryset.update(account_status='Inactive')
+        self.message_user(request, f"Successfully marked {updated} students as Inactive.")
+
+    @admin.action(description="Activate selected")
+    def mark_active(self, request, queryset):
+        updated = queryset.update(account_status='Active')
+        self.message_user(request, f"Successfully activated {updated} students.")
 
 @admin.register(Chapter)
 class ChapterAdmin(admin.ModelAdmin):
