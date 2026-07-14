@@ -85,9 +85,20 @@
                                     <p class="small text-muted mb-0">Video Lecture</p>
                                 </div>
                             </div>
-                            <a href="{{ video.video_url }}" target="_blank" class="btn btn-secondary-branded btn-sm rounded-pill px-4">
-                                Watch Now
-                            </a>
+                            <div class="d-flex align-items-center gap-2">
+                                <a href="{{ video.video_url }}" target="_blank" class="btn btn-secondary-branded btn-sm rounded-pill px-4">
+                                    Watch Now
+                                </a>
+                                {% if request.session.is_student %}
+                                <button class="btn btn-sm rounded-pill watch-toggle-btn {% if video.pk in watched_video_ids %}btn-success text-white{% else %}btn-outline-secondary{% endif %}" 
+                                        data-video-id="{{ video.pk }}" 
+                                        data-type="video" 
+                                        style="width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;"
+                                        title="{% if video.pk in watched_video_ids %}Watched{% else %}Mark as Watched{% endif %}">
+                                    <i class="bi {% if video.pk in watched_video_ids %}bi-check-lg{% else %}bi-check-lg opacity-50{% endif %} fs-6"></i>
+                                </button>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -102,13 +113,27 @@
 
     <!-- Chapters & Contents Hierarchy (Legacy/Structured) -->
     <div class="row g-4">
-        {% for chapter in subject.chapters.all %}
+        {% for data in chapters_data %}
+        {% with chapter=data.chapter %}
         <div class="col-12 mb-5">
             <div class="card card-branded border-0 p-4 p-md-5">
                 <div class="d-flex justify-content-between align-items-start mb-5 pb-3 border-bottom">
                     <div>
                         <h2 class="fw-bold mb-2">{{ chapter.name }}</h2>
                         <p class="text-muted mb-0">{{ chapter.description|default:"Master the core concepts of this chapter with our curated resources." }}</p>
+                        
+                        {% if data.percentage is not None %}
+                        <!-- Visual Progress Bar for Video Lectures in Chapter -->
+                        <div class="mt-3" style="max-width: 300px;">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small text-muted fw-bold">Video Progress</span>
+                                <span class="small text-secondary-branded fw-bold">{{ data.percentage }}% ({{ data.watched_count }}/{{ data.total_videos }})</span>
+                            </div>
+                            <div class="progress" style="height: 6px; border-radius: 3px; background: rgba(0,0,0,0.05);">
+                                <div class="progress-bar bg-secondary-branded" role="progressbar" style="width: {{ data.percentage }}%; border-radius: 3px;" aria-valuenow="{{ data.percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                     <span class="badge bg-primary-branded px-4 py-3 rounded-pill">Chapter {{ forloop.counter }}</span>
                 </div>
@@ -128,11 +153,20 @@
                                         </div>
                                         <div class="card-body p-4">
                                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                                <h5 class="fw-bold mb-0">{{ content.title }}</h5>
+                                                <h5 class="fw-bold mb-0 text-truncate" style="max-width: 75%;">{{ content.title }}</h5>
                                                 {% if request.session.is_student %}
-                                                <a href="{% url 'toggle_save_content' content.pk %}" class="text-secondary-branded text-decoration-none" title="Save this lecture">
-                                                    <i class="bi bi-bookmark{% if content.pk in saved_content_ids %}-fill{% endif %} fs-4"></i>
-                                                </a>
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <button class="btn btn-sm rounded-pill watch-toggle-btn {% if content.pk in watched_content_ids %}btn-success text-white{% else %}btn-outline-secondary{% endif %}" 
+                                                            data-video-id="{{ content.pk }}" 
+                                                            data-type="content" 
+                                                            style="width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;"
+                                                            title="{% if content.pk in watched_content_ids %}Watched{% else %}Mark as Watched{% endif %}">
+                                                        <i class="bi {% if content.pk in watched_content_ids %}bi-check-lg{% else %}bi-check-lg opacity-50{% endif %} fs-6"></i>
+                                                    </button>
+                                                    <a href="{% url 'toggle_save_content' content.pk %}" class="text-secondary-branded text-decoration-none" title="Save this lecture">
+                                                        <i class="bi bi-bookmark{% if content.pk in saved_content_ids %}-fill{% endif %} fs-4"></i>
+                                                    </a>
+                                                </div>
                                                 {% endif %}
                                             </div>
                                             <p class="small opacity-75 mb-0">{{ content.description|truncatechars:150 }}</p>
@@ -204,7 +238,56 @@
                 <a href="{% url 'home' %}" class="btn btn-primary-branded px-5 py-3 mt-4">Return Home</a>
             </div>
         </div>
+        {% endwith %}
         {% endfor %}
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const watchToggleButtons = document.querySelectorAll('.watch-toggle-btn');
+        watchToggleButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const videoId = this.getAttribute('data-video-id');
+                const type = this.getAttribute('data-type');
+                const url = type === 'video' ? `/toggle-watch-video/${videoId}/?ajax=1` : `/toggle-watch-content/${videoId}/?ajax=1`;
+                
+                this.disabled = true;
+                
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    this.disabled = false;
+                    if (data.success) {
+                        if (data.watched) {
+                            this.classList.remove('btn-outline-secondary');
+                            this.classList.add('btn-success', 'text-white');
+                            this.querySelector('i').classList.remove('opacity-50');
+                            this.setAttribute('title', 'Watched');
+                        } else {
+                            this.classList.remove('btn-success', 'text-white');
+                            this.classList.add('btn-outline-secondary');
+                            this.querySelector('i').classList.add('opacity-50');
+                            this.setAttribute('title', 'Mark as Watched');
+                        }
+                        // Reload the page after a very short delay to update progress bars
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 200);
+                    }
+                })
+                .catch(err => {
+                    this.disabled = false;
+                    console.error('Error toggling watched status:', err);
+                });
+            });
+        });
+    });
+</script>
 {% endblock %}

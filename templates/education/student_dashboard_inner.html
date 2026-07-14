@@ -153,9 +153,20 @@
                         <div class="card-body p-4 d-flex flex-column">
                             <h6 class="fw-bold mb-1 text-main text-truncate">{{ video.title }}</h6>
                             <p class="small text-muted mb-3">{{ video.subject.name }}</p>
-                            <a href="{{ video.video_url }}" target="_blank" class="btn btn-secondary-branded w-100 rounded-pill mt-auto">
-                                <i class="bi bi-youtube me-2"></i> Watch Now
-                            </a>
+                            <div class="mt-auto d-flex gap-2">
+                                <a href="{{ video.video_url }}" target="_blank" class="btn btn-secondary-branded rounded-pill flex-grow-1">
+                                    <i class="bi bi-youtube me-2"></i> Watch Now
+                                </a>
+                                {% if request.session.is_student %}
+                                <button class="btn btn-sm rounded-pill watch-toggle-btn {% if video.pk in watched_video_ids %}btn-success text-white{% else %}btn-outline-secondary{% endif %}" 
+                                        data-video-id="{{ video.pk }}" 
+                                        data-type="video" 
+                                        style="width: 42px; height: 42px; padding: 0; display: flex; align-items: center; justify-content: center;"
+                                        title="{% if video.pk in watched_video_ids %}Watched{% else %}Mark as Watched{% endif %}">
+                                    <i class="bi {% if video.pk in watched_video_ids %}bi-check-lg{% else %}bi-check-lg opacity-50{% endif %} fs-5"></i>
+                                </button>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -194,6 +205,20 @@
                                     <span class="badge bg-light small">{{ subject.branch.name }}</span>
                                 </div>
                             </div>
+                            
+                            {% if subject.progress %}
+                            <!-- Subject Video Progress -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="small text-muted fw-bold">Video Progress</span>
+                                    <span class="small text-secondary-branded fw-bold">{{ subject.progress.percentage }}% ({{ subject.progress.watched }}/{{ subject.progress.total }})</span>
+                                </div>
+                                <div class="progress" style="height: 6px; border-radius: 3px; background: rgba(0,0,0,0.05);">
+                                    <div class="progress-bar bg-secondary-branded" role="progressbar" style="width: {{ subject.progress.percentage }}%; border-radius: 3px;" aria-valuenow="{{ subject.progress.percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
                             <p class="text-muted small mb-4">View chapters, sub-topics, and detailed curriculum for this subject.</p>
                             <div class="d-flex justify-content-between align-items-center mt-auto">
                                 <span class="text-secondary-branded fw-bold small">Explore Curriculum <i class="bi bi-arrow-right ms-1"></i></span>
@@ -358,5 +383,50 @@
                 }
             });
         }
+
+        // Watched status toggle
+        const watchToggleButtons = document.querySelectorAll('.watch-toggle-btn');
+        watchToggleButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const videoId = this.getAttribute('data-video-id');
+                const type = this.getAttribute('data-type');
+                const url = type === 'video' ? `/toggle-watch-video/${videoId}/?ajax=1` : `/toggle-watch-content/${videoId}/?ajax=1`;
+                
+                this.disabled = true;
+                
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    this.disabled = false;
+                    if (data.success) {
+                        if (data.watched) {
+                            this.classList.remove('btn-outline-secondary');
+                            this.classList.add('btn-success', 'text-white');
+                            this.querySelector('i').classList.remove('opacity-50');
+                            this.setAttribute('title', 'Watched');
+                        } else {
+                            this.classList.remove('btn-success', 'text-white');
+                            this.classList.add('btn-outline-secondary');
+                            this.querySelector('i').classList.add('opacity-50');
+                            this.setAttribute('title', 'Mark as Watched');
+                        }
+                        // Reload the page after a very short delay to update progress bars
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 200);
+                    }
+                })
+                .catch(err => {
+                    this.disabled = false;
+                    console.error('Error toggling watched status:', err);
+                });
+            });
+        });
     });
 </script>

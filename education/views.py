@@ -120,6 +120,14 @@ def home(request):
             notes = Note.objects.filter(subject__in=all_subjects).select_related('subject')
             videos = Video.objects.filter(subject__in=all_subjects).select_related('subject')
             
+            # Fetch watched video IDs for dashboard display
+            from .models import WatchedVideo
+            watched_video_ids = WatchedVideo.objects.filter(student=admission, video__isnull=False).values_list('video_id', flat=True)
+            
+            # Calculate progress for each subject
+            for sub in all_subjects:
+                sub.progress = sub.get_progress(admission)
+
             context.update({
                 'admission': admission,
                 'subjects': all_subjects,
@@ -127,6 +135,7 @@ def home(request):
                 'videos': videos,
                 'total_notes': notes.count(),
                 'total_videos': videos.count(),
+                'watched_video_ids': watched_video_ids,
             })
         
     return render(request, 'education/index.html', context)
@@ -193,13 +202,52 @@ def subject_detail(request, pk):
     )
     
     saved_content_ids = []
+    watched_content_ids = []
+    watched_video_ids = []
+    chapters_data = []
+    
     if request.session.get('is_student'):
         student_id = request.session.get('student_id')
+        student = get_object_or_404(StudentAdmission, pk=student_id)
         saved_content_ids = SavedContent.objects.filter(student_id=student_id).values_list('content_id', flat=True)
+        
+        # Fetch watched video IDs for this student
+        from .models import WatchedVideo
+        watched_content_ids = WatchedVideo.objects.filter(student=student, content__isnull=False).values_list('content_id', flat=True)
+        watched_video_ids = WatchedVideo.objects.filter(student=student, video__isnull=False).values_list('video_id', flat=True)
+        
+        # Calculate progress for each chapter
+        for chapter in subject.chapters.all():
+            total_videos = len(chapter.videos)
+            if total_videos > 0:
+                watched_count = sum(1 for v in chapter.videos if v.pk in watched_content_ids)
+                percentage = min(100, int((watched_count / total_videos) * 100))
+            else:
+                percentage = None
+                watched_count = 0
+            
+            chapters_data.append({
+                'chapter': chapter,
+                'total_videos': total_videos,
+                'watched_count': watched_count,
+                'percentage': percentage
+            })
+    else:
+        # For admin/staff, we don't calculate progress
+        for chapter in subject.chapters.all():
+            chapters_data.append({
+                'chapter': chapter,
+                'total_videos': len(chapter.videos),
+                'watched_count': 0,
+                'percentage': None
+            })
         
     return render(request, 'education/subject_detail.html', {
         'subject': subject,
-        'saved_content_ids': saved_content_ids
+        'saved_content_ids': saved_content_ids,
+        'watched_content_ids': watched_content_ids,
+        'watched_video_ids': watched_video_ids,
+        'chapters_data': chapters_data
     })
 
 def search(request):
@@ -495,6 +543,14 @@ def student_dashboard(request):
     notes = Note.objects.filter(subject__in=all_subjects).select_related('subject')
     videos = Video.objects.filter(subject__in=all_subjects).select_related('subject')
     
+    # Fetch watched video IDs for dashboard display
+    from .models import WatchedVideo
+    watched_video_ids = WatchedVideo.objects.filter(student=admission, video__isnull=False).values_list('video_id', flat=True)
+    
+    # Calculate progress for each subject
+    for sub in all_subjects:
+        sub.progress = sub.get_progress(admission)
+
     return render(request, 'education/student_dashboard.html', {
         'admission': admission,
         'subjects': all_subjects,
@@ -502,6 +558,7 @@ def student_dashboard(request):
         'videos': videos,
         'total_notes': notes.count(),
         'total_videos': videos.count(),
+        'watched_video_ids': watched_video_ids
     })
 
 def content_view(request, class_name):
@@ -524,6 +581,66 @@ def toggle_save_content(request, pk):
         SavedContent.objects.create(student=student, content=content)
         messages.success(request, "Saved to your notes!")
     
+    return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+def toggle_watch_content(request, pk):
+    if not request.session.get('is_student'):
+        return redirect('login_selection')
+    
+    student_id = request.session.get('student_id')
+    student = get_object_or_404(StudentAdmission, pk=student_id)
+    content = get_object_or_404(Content, pk=pk)
+    
+    from .models import WatchedVideo
+    watched_record = WatchedVideo.objects.filter(student=student, content=content).first()
+    
+    if watched_record:
+        watched_record.delete()
+        watched = False
+        message = "Marked as unwatched."
+    else:
+        WatchedVideo.objects.create(student=student, content=content)
+        watched = True
+        message = "Marked as watched!"
+        
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('ajax') == '1':
+        return JsonResponse({
+            'success': True,
+            'watched': watched,
+            'message': message
+        })
+        
+    messages.success(request, message)
+    return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+def toggle_watch_video(request, pk):
+    if not request.session.get('is_student'):
+        return redirect('login_selection')
+        
+    student_id = request.session.get('student_id')
+    student = get_object_or_404(StudentAdmission, pk=student_id)
+    video = get_object_or_404(Video, pk=pk)
+    
+    from .models import WatchedVideo
+    watched_record = WatchedVideo.objects.filter(student=student, video=video).first()
+    
+    if watched_record:
+        watched_record.delete()
+        watched = False
+        message = "Marked as unwatched."
+    else:
+        WatchedVideo.objects.create(student=student, video=video)
+        watched = True
+        message = "Marked as watched!"
+        
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('ajax') == '1':
+        return JsonResponse({
+            'success': True,
+            'watched': watched,
+            'message': message
+        })
+        
+    messages.success(request, message)
     return redirect(request.META.get('HTTP_REFERER', 'home'))
 
 def saved_notes_page(request):

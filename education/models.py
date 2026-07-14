@@ -74,6 +74,31 @@ class Subject(models.Model):
 
         return f"{self.name} - {category_name} - {branch_name}{year_name}"
 
+    def get_progress(self, student):
+        # Prevent circular imports
+        from .models import Content, WatchedVideo
+        
+        # 1. Structured chapter-based videos
+        total_chapter_videos = Content.objects.filter(chapter__subject=self, content_type='Video').count()
+        # 2. Direct videos
+        total_direct_videos = self.videos.count()
+        
+        total_videos = total_chapter_videos + total_direct_videos
+        if total_videos == 0:
+            return None
+            
+        watched_chapter_videos = WatchedVideo.objects.filter(student=student, content__chapter__subject=self).count()
+        watched_direct_videos = WatchedVideo.objects.filter(student=student, video__subject=self).count()
+        
+        watched_total = watched_chapter_videos + watched_direct_videos
+        
+        percentage = min(100, int((watched_total / total_videos) * 100))
+        return {
+            'total': total_videos,
+            'watched': watched_total,
+            'percentage': percentage
+        }
+
 class Chapter(models.Model):
     subject = models.ForeignKey(Subject, related_name='chapters', on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
@@ -278,3 +303,30 @@ class TopStudent(models.Model):
         if self.total_marks > 0:
             return round((self.score_obtained / self.total_marks) * 100, 2)
         return 0
+
+class WatchedVideo(models.Model):
+    student = models.ForeignKey(StudentAdmission, on_delete=models.CASCADE, related_name='watched_videos')
+    content = models.ForeignKey(Content, on_delete=models.CASCADE, null=True, blank=True, related_name='watched_records')
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, null=True, blank=True, related_name='watched_records')
+    watched_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Watched Video"
+        verbose_name_plural = "Watched Videos"
+        # Ensure a student can only mark a specific content video or direct video as watched once
+        constraints = [
+            models.UniqueConstraint(
+                fields=['student', 'content'],
+                name='unique_student_content_watch',
+                condition=models.Q(content__isnull=False)
+            ),
+            models.UniqueConstraint(
+                fields=['student', 'video'],
+                name='unique_student_video_watch',
+                condition=models.Q(video__isnull=False)
+            ),
+        ]
+
+    def __str__(self):
+        video_title = self.content.title if self.content else (self.video.title if self.video else "Unknown Video")
+        return f"{self.student.full_name} watched {video_title}"
