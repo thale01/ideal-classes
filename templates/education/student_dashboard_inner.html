@@ -219,6 +219,13 @@
                             </div>
                             {% endif %}
                             
+                            <!-- Content Stats -->
+                            <div class="d-flex gap-3 mb-3 small opacity-75">
+                                <span class="text-nowrap"><i class="bi bi-journal-bookmark text-success me-1"></i><strong>{{ subject.chapters.count }}</strong> Chapters</span>
+                                <span class="text-nowrap"><i class="bi bi-file-earmark-pdf text-danger me-1"></i><strong>{{ subject.notes.count }}</strong> Notes</span>
+                                <span class="text-nowrap"><i class="bi bi-play-btn text-primary me-1"></i><strong>{{ subject.videos.count }}</strong> Videos</span>
+                            </div>
+                            
                             <p class="text-muted small mb-4">View chapters, sub-topics, and detailed curriculum for this subject.</p>
                             <div class="d-flex justify-content-between align-items-center mt-auto">
                                 <span class="text-secondary-branded fw-bold small">Explore Curriculum <i class="bi bi-arrow-right ms-1"></i></span>
