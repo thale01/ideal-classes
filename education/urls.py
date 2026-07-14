@@ -28,6 +28,7 @@ urlpatterns = [
     path('toggle-watch-content/<int:pk>/', views.toggle_watch_content, name='toggle_watch_content'),
     path('toggle-watch-video/<int:pk>/', views.toggle_watch_video, name='toggle_watch_video'),
     path('my-saved-notes/', views.saved_notes_page, name='saved_notes'),
+    path('submit-feedback/', views.submit_feedback, name='submit_feedback'),
     path('robots.txt', views.robots_txt, name='robots_txt'),
     path('sitemap.xml', views.sitemap_xml, name='sitemap_xml'),
 ]

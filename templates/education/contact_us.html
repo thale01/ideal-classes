@@ -34,8 +34,13 @@
                             {{ form.email|as_crispy_field }}
                         </div>
                     </div>
-                    <div class="mb-3">
-                        {{ form.subject|as_crispy_field }}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.phone|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.subject|as_crispy_field }}
+                        </div>
                     </div>
                     <div class="mb-4">
                         {{ form.message|as_crispy_field }}

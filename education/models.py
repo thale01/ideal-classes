@@ -205,12 +205,26 @@ class GlobalSetting(models.Model):
 class ContactMessage(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField()
+    phone = models.CharField(max_length=15, blank=True, null=True)
     subject = models.CharField(max_length=200)
     message = models.TextField()
+    is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Message from {self.name} - {self.subject}"
+
+class Feedback(models.Model):
+    student = models.OneToOneField(StudentAdmission, on_delete=models.CASCADE, related_name='feedback')
+    rating = models.IntegerField(choices=[(i, f"{i} Star") for i in range(1, 6)])
+    comment = models.TextField()
+    is_approved = models.BooleanField(default=False)
+    is_featured = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.student.full_name} - {self.rating} Stars"
 
 class SavedContent(models.Model):
     student = models.ForeignKey(StudentAdmission, on_delete=models.CASCADE, related_name='saved_items')

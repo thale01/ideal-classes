@@ -10,7 +10,7 @@ import json
 import os
 from django.http import JsonResponse, HttpResponse
 from django.conf import settings
-from .models import Category, Branch, Subject, Content, StudentAdmission, GlobalSetting, Year, ContactMessage, SavedContent, Note, Video, FCMToken, TopStudent
+from .models import Category, Branch, Subject, Content, StudentAdmission, GlobalSetting, Year, ContactMessage, SavedContent, Note, Video, FCMToken, TopStudent, Feedback
 import firebase_admin
 from firebase_admin import messaging, credentials
 from functools import wraps
@@ -129,15 +129,101 @@ def home(request):
     except Exception as e:
         top_students = None
         
+    # Fetch testimonials for landing page
+    testimonials = Feedback.objects.filter(is_approved=True, is_featured=True).select_related('student', 'student__category', 'student__branch').order_by('-updated_at')
+
     context = {
         'categories': categories,
-        'top_students': top_students
+        'top_students': top_students,
+        'testimonials': testimonials
     }
     
     if request.user.is_staff:
+        import datetime
+        from django.db.models import Count, Avg
+        
+        # Admin statistics (counts)
+        context['total_all_students'] = StudentAdmission.objects.count()
         context['total_students'] = StudentAdmission.objects.filter(status='Approved', account_status='Active').count()
+        context['active_students_count'] = StudentAdmission.objects.filter(status='Approved', account_status='Active').count()
+        context['graduated_students_count'] = StudentAdmission.objects.filter(status='Approved', account_status='Graduated').count()
+        context['inactive_students_count'] = StudentAdmission.objects.filter(status='Approved', account_status='Inactive').count()
         context['pending_admissions'] = StudentAdmission.objects.filter(status='Pending').count()
+        context['total_courses'] = Category.objects.count()
+        context['total_departments'] = Branch.objects.count()
         context['total_subjects'] = Subject.objects.count()
+        context['total_notes'] = Note.objects.count() + Content.objects.filter(content_type='Note').count()
+        context['total_videos'] = Video.objects.count() + Content.objects.filter(content_type='Video').count()
+        context['total_enquiries'] = ContactMessage.objects.count()
+        context['total_feedbacks'] = Feedback.objects.count()
+        
+        # 1. Students per Course Chart
+        courses_chart = list(Category.objects.annotate(num_students=Count('admissions')).values('name', 'num_students'))
+        context['courses_chart_json'] = json.dumps(courses_chart)
+        
+        # 2. Admissions per Month Chart (Python-based database-agnostic grouping)
+        admissions_dates = StudentAdmission.objects.values_list('created_at', flat=True)
+        months_data = {}
+        for dt in admissions_dates:
+            if dt:
+                m_str = dt.strftime('%b %Y')
+                months_data[m_str] = months_data.get(m_str, 0) + 1
+        sorted_months = sorted(months_data.keys(), key=lambda m: datetime.datetime.strptime(m, '%b %Y') if m else datetime.datetime.min)
+        admissions_chart = [{'month': m, 'count': months_data[m]} for m in sorted_months]
+        context['admissions_chart_json'] = json.dumps(admissions_chart)
+        
+        # 3. Students per Department Chart
+        departments_chart = list(Branch.objects.annotate(num_students=Count('admissions')).values('name', 'num_students'))
+        context['departments_chart_json'] = json.dumps(departments_chart)
+        
+        # 4. Notes per Subject Chart
+        subject_notes_chart = []
+        for sub in Subject.objects.prefetch_related('notes', 'chapters__contents'):
+            direct_notes_count = sub.notes.count()
+            chapter_notes_count = sum(ch.contents.filter(content_type='Note').count() for ch in sub.chapters.all())
+            subject_notes_chart.append({
+                'name': sub.name,
+                'count': direct_notes_count + chapter_notes_count
+            })
+        context['subject_notes_chart_json'] = json.dumps(subject_notes_chart)
+        
+        # 5. Videos per Subject Chart
+        subject_videos_chart = []
+        for sub in Subject.objects.prefetch_related('videos', 'chapters__contents'):
+            direct_videos_count = sub.videos.count()
+            chapter_videos_count = sum(ch.contents.filter(content_type='Video').count() for ch in sub.chapters.all())
+            subject_videos_chart.append({
+                'name': sub.name,
+                'count': direct_videos_count + chapter_videos_count
+            })
+        context['subject_videos_chart_json'] = json.dumps(subject_videos_chart)
+        
+        # 6. Status Distribution Chart
+        status_chart = list(StudentAdmission.objects.filter(status='Approved').values('account_status').annotate(num_students=Count('id')))
+        context['status_chart_json'] = json.dumps(status_chart)
+        
+        # Feedback Analytics Stats
+        avg_rating = Feedback.objects.aggregate(avg=Avg('rating'))['avg']
+        context['avg_rating'] = round(avg_rating, 1) if avg_rating else 0
+        context['total_reviews'] = Feedback.objects.count()
+        context['featured_reviews_count'] = Feedback.objects.filter(is_featured=True).count()
+        
+        rating_counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+        for item in Feedback.objects.values('rating').annotate(count=Count('id')):
+            r = item['rating']
+            if r in rating_counts:
+                rating_counts[r] = item['count']
+        
+        rating_dist_list = []
+        for r in sorted(rating_counts.keys(), reverse=True):
+            count = rating_counts[r]
+            pct = round((count / context['total_reviews'] * 100), 1) if context['total_reviews'] > 0 else 0
+            rating_dist_list.append({
+                'rating': r,
+                'count': count,
+                'percentage': pct
+            })
+        context['rating_distribution_list'] = rating_dist_list
     elif request.session.get('is_student'):
         email = request.session.get('student_email')
         admission = StudentAdmission.objects.filter(email=email).first()
@@ -535,7 +621,32 @@ def contact_us(request):
     if request.method == 'POST':
         form = ContactForm(request.POST)
         if form.is_valid():
-            form.save()
+            enquiry = form.save()
+            
+            # Send confirmation email
+            from django.core.mail import send_mail
+            email = form.cleaned_data.get('email')
+            name = form.cleaned_data.get('name')
+            subject = form.cleaned_data.get('subject')
+            
+            email_message = (
+                f"Hi {name},\n\n"
+                f"Thank you for contacting Ideal Classes. We have received your message regarding '{subject}' and will get back to you shortly.\n\n"
+                f"Your Message:\n\"{enquiry.message}\"\n\n"
+                f"Best regards,\n"
+                f"Ideal Classes Team"
+            )
+            try:
+                send_mail(
+                    subject="Thank you for contacting Ideal Classes",
+                    message=email_message,
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[email],
+                    fail_silently=True
+                )
+            except Exception as e:
+                print(f"Error sending contact confirmation email: {e}")
+                
             messages.success(request, "Your message has been sent successfully! Our team will get back to you soon.")
             return redirect('contact_us')
     else:
@@ -601,12 +712,14 @@ def student_dashboard(request):
     videos = Video.objects.filter(subject__in=all_subjects).select_related('subject')
     
     # Fetch watched video IDs for dashboard display
-    from .models import WatchedVideo
+    from .models import WatchedVideo, Feedback
     watched_video_ids = WatchedVideo.objects.filter(student=admission, video__isnull=False).values_list('video_id', flat=True)
     
     # Calculate progress for each subject
     for sub in all_subjects:
         sub.progress = sub.get_progress(admission)
+
+    student_feedback = Feedback.objects.filter(student=admission).first()
 
     return render(request, 'education/student_dashboard.html', {
         'admission': admission,
@@ -615,8 +728,42 @@ def student_dashboard(request):
         'videos': videos,
         'total_notes': notes.count(),
         'total_videos': videos.count(),
-        'watched_video_ids': watched_video_ids
+        'watched_video_ids': watched_video_ids,
+        'student_feedback': student_feedback
     })
+
+@active_student_required
+def submit_feedback(request):
+    if request.method == 'POST':
+        student_id = request.session.get('student_id')
+        student = get_object_or_404(StudentAdmission, pk=student_id)
+        
+        try:
+            rating = int(request.POST.get('rating', 5))
+        except ValueError:
+            rating = 5
+            
+        comment = request.POST.get('comment', '').strip()
+        
+        if not comment:
+            messages.error(request, "Please enter your review comment.")
+            return redirect('student_dashboard')
+            
+        from .models import Feedback
+        feedback, created = Feedback.objects.update_or_create(
+            student=student,
+            defaults={
+                'rating': rating,
+                'comment': comment
+            }
+        )
+        
+        if created:
+            messages.success(request, "Thank you for your feedback! It has been submitted for moderation.")
+        else:
+            messages.success(request, "Your feedback has been successfully updated.")
+            
+    return redirect('student_dashboard')
 
 @active_student_required
 def content_view(request, class_name):

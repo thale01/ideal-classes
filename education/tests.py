@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
-from .models import Category, Branch, Subject, Chapter, Content, Video, StudentAdmission, WatchedVideo, GlobalSetting
+from django.urls import reverse
+from .models import Category, Branch, Subject, Chapter, Content, Video, StudentAdmission, WatchedVideo, GlobalSetting, ContactMessage, Feedback
 
 class VideoProgressTestCase(TestCase):
     def setUp(self):
@@ -163,3 +164,104 @@ class StudentLifecycleTestCase(TestCase):
         response = self.client.get(reverse('home'))
         # Total active students should be 1 (only self.active_student)
         self.assertEqual(response.context['total_students'], 1)
+
+class AnalyticsAndFeedbackTestCase(TestCase):
+    def setUp(self):
+        self.category = Category.objects.create(name="12th Science")
+        self.branch = Branch.objects.create(name="Ramwadi")
+        self.student = StudentAdmission.objects.create(
+            full_name="Active Student",
+            email="active@example.com",
+            phone="1111111111",
+            category=self.category,
+            branch=self.branch,
+            status="Approved",
+            account_status="Active"
+        )
+        self.staff_user = User.objects.create_superuser('admin2', 'admin2@example.com', 'password')
+
+    def test_contact_enquiry_submission(self):
+        from django.core import mail
+        from django.urls import reverse
+        response = self.client.post(reverse('contact_us'), {
+            'name': 'Visitor Name',
+            'email': 'visitor@example.com',
+            'phone': '9876543210',
+            'subject': 'Inquiry Subject',
+            'message': 'This is a message.'
+        })
+        self.assertEqual(response.status_code, 302)
+        
+        # Verify database record
+        enquiry = ContactMessage.objects.first()
+        self.assertIsNotNone(enquiry)
+        self.assertEqual(enquiry.name, 'Visitor Name')
+        self.assertEqual(enquiry.phone, '9876543210')
+        self.assertEqual(enquiry.is_read, False)
+        
+        # Verify confirmation email sent
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ['visitor@example.com'])
+        self.assertIn("Thank you for contacting Ideal Classes", mail.outbox[0].subject)
+
+    def test_student_feedback_submission_and_edit(self):
+        from django.urls import reverse
+        # Authenticate active student session
+        session = self.client.session
+        session['student_id'] = self.student.id
+        session['student_email'] = self.student.email
+        session['is_student'] = True
+        session.save()
+
+        # Submit feedback
+        response = self.client.post(reverse('submit_feedback'), {
+            'rating': 5,
+            'comment': 'Amazing classes!'
+        })
+        self.assertRedirects(response, reverse('student_dashboard'))
+        
+        feedback = Feedback.objects.filter(student=self.student).first()
+        self.assertIsNotNone(feedback)
+        self.assertEqual(feedback.rating, 5)
+        self.assertEqual(feedback.comment, 'Amazing classes!')
+        self.assertEqual(feedback.is_approved, False)
+
+        # Edit feedback
+        response = self.client.post(reverse('submit_feedback'), {
+            'rating': 4,
+            'comment': 'Good classes!'
+        })
+        self.assertRedirects(response, reverse('student_dashboard'))
+        
+        # Count should still be 1 (OneToOne)
+        self.assertEqual(Feedback.objects.count(), 1)
+        feedback.refresh_from_db()
+        self.assertEqual(feedback.rating, 4)
+        self.assertEqual(feedback.comment, 'Good classes!')
+
+    def test_admin_analytics_dashboard(self):
+        from django.urls import reverse
+        # Create some test messages and feedbacks
+        ContactMessage.objects.create(name="Visitor", email="v@ex.com", phone="123", subject="S", message="M")
+        feedback = Feedback.objects.create(student=self.student, rating=5, comment="Great!", is_approved=True, is_featured=True)
+        
+        self.client.login(username='admin2', password='password')
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.status_code, 200)
+        
+        # Check counts in context
+        self.assertEqual(response.context['total_enquiries'], 1)
+        self.assertEqual(response.context['total_feedbacks'], 1)
+        self.assertEqual(response.context['avg_rating'], 5.0)
+        self.assertEqual(response.context['featured_reviews_count'], 1)
+        
+        # Check JSON strings for charts exist
+        self.assertIn('courses_chart_json', response.context)
+        self.assertIn('admissions_chart_json', response.context)
+        self.assertIn('departments_chart_json', response.context)
+        self.assertIn('status_chart_json', response.context)
+        
+        # Check testimonials display for landing page when logged out
+        self.client.logout()
+        response = self.client.get(reverse('home'))
+        self.assertIn(feedback, response.context['testimonials'])

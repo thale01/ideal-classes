@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django import forms
-from .models import Category, Branch, Subject, Chapter, Content, Year, ContactMessage, StudentAdmission, Note, Video, TopStudent, WatchedVideo
+from .models import Category, Branch, Subject, Chapter, Content, Year, ContactMessage, StudentAdmission, Note, Video, TopStudent, WatchedVideo, Feedback
 
 class ContentInline(admin.TabularInline):
     model = Content
@@ -113,10 +113,48 @@ class ContentAdmin(admin.ModelAdmin):
 
 @admin.register(ContactMessage)
 class ContactMessageAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email', 'subject', 'created_at')
-    list_filter = ('created_at',)
-    search_fields = ('name', 'email', 'subject', 'message')
+    list_display = ('name', 'email', 'phone', 'subject', 'is_read', 'created_at')
+    list_filter = ('is_read', 'created_at')
+    search_fields = ('name', 'email', 'phone', 'subject', 'message')
     readonly_fields = ('created_at',)
+    actions = ['mark_as_read', 'mark_as_unread']
+
+    @admin.action(description="Mark selected enquiries as Read")
+    def mark_as_read(self, request, queryset):
+        updated = queryset.update(is_read=True)
+        self.message_user(request, f"Successfully marked {updated} enquiries as Read.")
+
+    @admin.action(description="Mark selected enquiries as Unread")
+    def mark_as_unread(self, request, queryset):
+        updated = queryset.update(is_read=False)
+        self.message_user(request, f"Successfully marked {updated} enquiries as Unread.")
+
+@admin.register(Feedback)
+class FeedbackAdmin(admin.ModelAdmin):
+    list_display = ('student', 'rating', 'is_approved', 'is_featured', 'created_at', 'updated_at')
+    list_filter = ('rating', 'is_approved', 'is_featured', 'created_at')
+    search_fields = ('student__full_name', 'comment')
+    actions = ['approve_feedback', 'reject_feedback', 'feature_feedback', 'unfeature_feedback']
+
+    @admin.action(description="Approve selected feedback")
+    def approve_feedback(self, request, queryset):
+        updated = queryset.update(is_approved=True)
+        self.message_user(request, f"Successfully approved {updated} feedbacks.")
+
+    @admin.action(description="Reject selected feedback")
+    def reject_feedback(self, request, queryset):
+        updated = queryset.update(is_approved=False)
+        self.message_user(request, f"Successfully rejected {updated} feedbacks.")
+
+    @admin.action(description="Feature selected feedback (Show on home page)")
+    def feature_feedback(self, request, queryset):
+        updated = queryset.update(is_featured=True)
+        self.message_user(request, f"Successfully featured {updated} feedbacks on the home page.")
+
+    @admin.action(description="Unfeature selected feedback (Hide from home page)")
+    def unfeature_feedback(self, request, queryset):
+        updated = queryset.update(is_featured=False)
+        self.message_user(request, f"Successfully unfeatured {updated} feedbacks.")
 
 @admin.register(Note)
 class NoteAdmin(admin.ModelAdmin):
